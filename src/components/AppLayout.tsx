@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, Bell, BarChart3, Settings, Menu, Home, X, LogOut } from "lucide-react";
@@ -39,13 +40,24 @@ const AppLayout = () => {
     { id: "settings", name: "Настройки", icon: Settings },
   ];
 
+  const handleTabClick = (tabId: string) => {
+    console.log('🔄 Switching to tab:', tabId);
+    console.log('🔄 Previous tab:', activeTab);
+    setActiveTab(tabId);
+    setSidebarOpen(false);
+    console.log('✅ Tab switched successfully');
+  };
+
   const renderContent = () => {
+    console.log('🎨 Rendering content for tab:', activeTab);
+    
     switch (activeTab) {
       case "dashboard":
         return <Dashboard />;
       case "calendar":
         return <CalendarPage />;
       case "clients":
+        console.log('👥 Rendering ClientsPage');
         return <ClientsPage />;
       case "reminders":
         return <NotificationsPage />;
@@ -66,6 +78,7 @@ const AppLayout = () => {
           </div>
         );
       default:
+        console.log('⚠️ Unknown tab, falling back to dashboard');
         return <Dashboard />;
     }
   };
@@ -113,13 +126,15 @@ const AppLayout = () => {
                   ? "bg-primary text-primary-foreground shadow-soft" 
                   : "hover:bg-muted"
               }`}
-              onClick={() => {
-                setActiveTab(item.id);
-                setSidebarOpen(false);
-              }}
+              onClick={() => handleTabClick(item.id)}
             >
               <item.icon className="w-5 h-5" />
               {item.name}
+              {item.id === 'clients' && (
+                <span className="ml-auto text-xs opacity-60">
+                  {activeTab === item.id ? '●' : '○'}
+                </span>
+              )}
             </Button>
           ))}
         </nav>
@@ -159,7 +174,7 @@ const AppLayout = () => {
                   {navigation.find(item => item.id === activeTab)?.name}
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                  Салон груминга "Лапки"
+                  Салон груминга "Лапки" • Активная вкладка: {activeTab}
                 </p>
               </div>
             </div>
@@ -178,6 +193,9 @@ const AppLayout = () => {
 
         {/* Content */}
         <main className="flex-1 p-4 lg:p-6 overflow-auto">
+          <div className="mb-4 p-2 bg-muted/50 rounded text-xs text-muted-foreground">
+            Debug: activeTab = "{activeTab}" | user = {user?.email || 'not logged in'}
+          </div>
           {renderContent()}
         </main>
       </div>

@@ -1,16 +1,19 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Plus, Filter, Users, Star, TrendingUp } from 'lucide-react';
+import { Search, Plus, Filter, Users, Star, TrendingUp, AlertCircle } from 'lucide-react';
 import { useClients } from '@/hooks/useClients';
 import ClientCard from './ClientCard';
 import ClientForm from './ClientForm';
 import PetsModal from './PetsModal';
 
 export default function ClientsPage() {
+  console.log('🎨 ClientsPage component rendering...');
+  
   const { clients, loading, searchTerm, setSearchTerm, addClient, updateClient, deleteClient } = useClients();
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
@@ -18,6 +21,13 @@ export default function ClientsPage() {
   const [showPetsModal, setShowPetsModal] = useState(false);
   const [tagFilter, setTagFilter] = useState('');
   const [sortBy, setSortBy] = useState('newest');
+
+  console.log('📊 ClientsPage state:', { 
+    clientsCount: clients.length, 
+    loading, 
+    showForm, 
+    editingClient: !!editingClient 
+  });
 
   // Получаем уникальные теги для фильтра
   const allTags = Array.from(new Set(clients.flatMap(client => client.tags)));
@@ -46,21 +56,25 @@ export default function ClientsPage() {
     });
 
   const handleAddClient = () => {
+    console.log('➕ Add client button clicked');
     setEditingClient(null);
     setShowForm(true);
   };
 
   const handleEditClient = (client) => {
+    console.log('✏️ Edit client:', client.id);
     setEditingClient(client);
     setShowForm(true);
   };
 
   const handleSubmit = async (formData) => {
+    console.log('💾 Submitting client data:', formData);
     if (editingClient) {
       await updateClient(editingClient.id, formData);
     } else {
       await addClient(formData);
     }
+    setShowForm(false);
   };
 
   const handleViewPets = (client) => {
@@ -87,15 +101,33 @@ export default function ClientsPage() {
   };
 
   if (loading) {
+    console.log('⏳ ClientsPage showing loading state');
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-muted-foreground">Загрузка клиентов...</div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="text-lg text-muted-foreground">Загрузка клиентов...</div>
+          <div className="text-sm text-muted-foreground">
+            Если загрузка затянулась, проверьте консоль браузера
+          </div>
+        </div>
       </div>
     );
   }
 
+  console.log('✅ ClientsPage rendering main content');
+
   return (
     <div className="space-y-6">
+      {/* Debug info */}
+      <div className="bg-muted/50 p-3 rounded text-xs text-muted-foreground">
+        <div>Debug Info:</div>
+        <div>• Клиентов загружено: {clients.length}</div>
+        <div>• Фильтрованных клиентов: {filteredAndSortedClients.length}</div>
+        <div>• Состояние загрузки: {loading ? 'загружается' : 'завершено'}</div>
+        <div>• Форма открыта: {showForm ? 'да' : 'нет'}</div>
+      </div>
+
       {/* Заголовок и статистика */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -253,6 +285,20 @@ export default function ClientsPage() {
                 Добавить клиента
               </Button>
             )}
+            
+            {/* Дополнительная информация для диагностики */}
+            <div className="mt-6 p-4 bg-muted/50 rounded text-sm text-left">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertCircle className="h-4 w-4" />
+                <span className="font-medium">Информация для диагностики:</span>
+              </div>
+              <div className="space-y-1 text-muted-foreground">
+                <div>• Всего клиентов в базе: {clients.length}</div>
+                <div>• После фильтрации: {filteredAndSortedClients.length}</div>
+                <div>• Поисковый запрос: "{searchTerm}"</div>
+                <div>• Фильтр по тегам: "{tagFilter}"</div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       ) : (
@@ -273,14 +319,21 @@ export default function ClientsPage() {
       <ClientForm
         client={editingClient}
         open={showForm}
-        onClose={() => setShowForm(false)}
+        onClose={() => {
+          console.log('❌ Closing client form');
+          setShowForm(false);
+          setEditingClient(null);
+        }}
         onSubmit={handleSubmit}
       />
 
       <PetsModal
         client={selectedClient}
         open={showPetsModal}
-        onClose={() => setShowPetsModal(false)}
+        onClose={() => {
+          setShowPetsModal(false);
+          setSelectedClient(null);
+        }}
       />
     </div>
   );
