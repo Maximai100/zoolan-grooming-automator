@@ -88,14 +88,14 @@ export const useAnalytics = () => {
   });
 
   const getWeeklyRevenue = useQuery({
-    queryKey: ['weekly-revenue', profile?.salon_id],
+    queryKey: ['weekly-revenue', user?.id],
     queryFn: async () => {
-      if (!profile?.salon_id) return [];
+      if (!user?.id) return [];
 
       const { data, error } = await supabase
         .from('orders')
         .select('total_amount, created_at')
-        .eq('salon_id', profile.salon_id)
+        .eq('salon_id', user.id)
         .eq('payment_status', 'paid')
         .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
         .order('created_at', { ascending: true });
@@ -114,14 +114,14 @@ export const useAnalytics = () => {
         revenue
       }));
     },
-    enabled: !!profile?.salon_id,
+    enabled: !!user?.id,
     staleTime: 30 * 60 * 1000, // 30 минут
   });
 
   const getTopServices = useQuery({
-    queryKey: ['top-services', profile?.salon_id],
+    queryKey: ['top-services', user?.id],
     queryFn: async () => {
-      if (!profile?.salon_id) return [];
+      if (!user?.id) return [];
 
       const { data, error } = await supabase
         .from('appointments')
@@ -130,7 +130,7 @@ export const useAnalytics = () => {
           services!inner(name, price),
           status
         `)
-        .eq('salon_id', profile.salon_id)
+        .eq('salon_id', user.id)
         .eq('status', 'completed')
         .gte('scheduled_date', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
 
@@ -160,7 +160,7 @@ export const useAnalytics = () => {
         .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 5);
     },
-    enabled: !!profile?.salon_id,
+    enabled: !!user?.id,
     staleTime: 60 * 60 * 1000, // 1 час
   });
 
