@@ -93,6 +93,39 @@ export type Database = {
           },
         ]
       }
+      analytics_cache: {
+        Row: {
+          created_at: string | null
+          data: Json
+          id: string
+          metric_type: string
+          period_end: string
+          period_start: string
+          salon_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json
+          id?: string
+          metric_type: string
+          period_end: string
+          period_start: string
+          salon_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json
+          id?: string
+          metric_type?: string
+          period_end?: string
+          period_start?: string
+          salon_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           client_id: string
@@ -647,6 +680,92 @@ export type Database = {
           valid_from?: string | null
           valid_until?: string | null
           value?: number
+        }
+        Relationships: []
+      }
+      generated_reports: {
+        Row: {
+          created_at: string | null
+          data: Json
+          file_url: string | null
+          format: string | null
+          generated_by: string | null
+          id: string
+          name: string
+          period_end: string
+          period_start: string
+          report_type: string
+          salon_id: string
+          template_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json
+          file_url?: string | null
+          format?: string | null
+          generated_by?: string | null
+          id?: string
+          name: string
+          period_end: string
+          period_start: string
+          report_type: string
+          salon_id: string
+          template_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json
+          file_url?: string | null
+          format?: string | null
+          generated_by?: string | null
+          id?: string
+          name?: string
+          period_end?: string
+          period_start?: string
+          report_type?: string
+          salon_id?: string
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_reports_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "report_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kpi_metrics: {
+        Row: {
+          calculated_at: string | null
+          id: string
+          metric_data: Json | null
+          metric_name: string
+          metric_value: number | null
+          period_end: string
+          period_start: string
+          salon_id: string
+        }
+        Insert: {
+          calculated_at?: string | null
+          id?: string
+          metric_data?: Json | null
+          metric_name: string
+          metric_value?: number | null
+          period_end: string
+          period_start: string
+          salon_id: string
+        }
+        Update: {
+          calculated_at?: string | null
+          id?: string
+          metric_data?: Json | null
+          metric_name?: string
+          metric_value?: number | null
+          period_end?: string
+          period_start?: string
+          salon_id?: string
         }
         Relationships: []
       }
@@ -1410,6 +1529,96 @@ export type Database = {
         }
         Relationships: []
       }
+      report_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          fields: Json
+          filters: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          report_type: string
+          salon_id: string
+          schedule: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          fields?: Json
+          filters?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          report_type: string
+          salon_id: string
+          schedule?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          fields?: Json
+          filters?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          report_type?: string
+          salon_id?: string
+          schedule?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      revenue_forecasts: {
+        Row: {
+          accuracy_score: number | null
+          actual_revenue: number | null
+          based_on_data: Json | null
+          confidence_level: number | null
+          created_at: string | null
+          forecast_period: string
+          id: string
+          period_end: string
+          period_start: string
+          predicted_revenue: number
+          salon_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          accuracy_score?: number | null
+          actual_revenue?: number | null
+          based_on_data?: Json | null
+          confidence_level?: number | null
+          created_at?: string | null
+          forecast_period: string
+          id?: string
+          period_end: string
+          period_start: string
+          predicted_revenue?: number
+          salon_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          accuracy_score?: number | null
+          actual_revenue?: number | null
+          based_on_data?: Json | null
+          confidence_level?: number | null
+          created_at?: string | null
+          forecast_period?: string
+          id?: string
+          period_end?: string
+          period_start?: string
+          predicted_revenue?: number
+          salon_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       salons: {
         Row: {
           address: string | null
@@ -1623,6 +1832,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_salon_kpi: {
+        Args: { salon_uuid: string; start_date: string; end_date: string }
+        Returns: Json
+      }
+      generate_revenue_forecast: {
+        Args: { salon_uuid: string; forecast_days?: number }
+        Returns: Json
+      }
       send_automatic_reminders: {
         Args: Record<PropertyKey, never>
         Returns: undefined
