@@ -1,12 +1,26 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import LandingPage from "@/components/LandingPage";
+import AppLayout from "@/components/AppLayout";
 
 const Index = () => {
+  const [showApp, setShowApp] = useState(false);
+
+  if (showApp) {
+    return <AppLayout />;
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div onClick={(e) => {
+      if (e.target instanceof HTMLElement && 
+          (e.target.textContent?.includes("Попробовать бесплатно") || 
+           e.target.textContent?.includes("Начать") ||
+           e.target.closest('button')?.textContent?.includes("Попробовать") ||
+           e.target.closest('button')?.textContent?.includes("Начать"))) {
+        setShowApp(true);
+      }
+    }}>
+      <LandingPage />
     </div>
   );
 };
