@@ -19,7 +19,7 @@ export default function ClientsPage() {
   const [editingClient, setEditingClient] = useState(null);
   const [selectedClient, setSelectedClient] = useState(null);
   const [showPetsModal, setShowPetsModal] = useState(false);
-  const [tagFilter, setTagFilter] = useState('');
+  const [tagFilter, setTagFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
 
   console.log('📊 ClientsPage state:', { 
@@ -35,7 +35,7 @@ export default function ClientsPage() {
   // Фильтрация и сортировка
   const filteredAndSortedClients = clients
     .filter(client => {
-      if (tagFilter && !client.tags.includes(tagFilter)) return false;
+      if (tagFilter && tagFilter !== 'all' && !client.tags?.includes(tagFilter)) return false;
       return true;
     })
     .sort((a, b) => {
@@ -213,7 +213,7 @@ export default function ClientsPage() {
               <SelectValue placeholder="По тегам" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Все теги</SelectItem>
+              <SelectItem value="all">Все теги</SelectItem>
               {allTags.map(tag => (
                 <SelectItem key={tag} value={tag}>{tag}</SelectItem>
               ))}
@@ -236,13 +236,13 @@ export default function ClientsPage() {
       </div>
 
       {/* Активные фильтры */}
-      {(tagFilter || searchTerm) && (
+      {(tagFilter && tagFilter !== 'all' || searchTerm) && (
         <div className="flex gap-2 flex-wrap">
-          {tagFilter && (
+          {tagFilter && tagFilter !== 'all' && (
             <Badge variant="secondary" className="px-3 py-1">
               Тег: {tagFilter}
               <button
-                onClick={() => setTagFilter('')}
+                onClick={() => setTagFilter('all')}
                 className="ml-2 hover:bg-destructive/20 rounded-full p-0.5"
               >
                 <span className="sr-only">Удалить фильтр</span>
