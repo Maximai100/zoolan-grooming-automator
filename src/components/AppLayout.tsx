@@ -8,6 +8,7 @@ import Dashboard from "./Dashboard";
 import ClientsPage from "./ClientsPage";
 import CalendarPage from "./CalendarPage";
 import NotificationsPage from "./NotificationsPage";
+import AnalyticsPage from "./AnalyticsPage";
 
 const AppLayout = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -62,13 +63,7 @@ const AppLayout = () => {
       case "reminders":
         return <NotificationsPage />;
       case "analytics":
-        return (
-          <div className="text-center py-20">
-            <BarChart3 className="w-16 h-16 text-primary mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Аналитика бизнеса</h2>
-            <p className="text-muted-foreground">Отчеты по доходам и эффективности</p>
-          </div>
-        );
+        return <AnalyticsPage />;
       case "settings":
         return (
           <div className="text-center py-20">

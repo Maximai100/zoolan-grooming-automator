@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useState, useEffect } from 'react';
 
 export interface KPIMetrics {
   total_revenue: number;
@@ -29,6 +30,24 @@ export interface RevenueForecast {
 
 export const useAnalytics = () => {
   const { user } = useAuth();
+  const [profile, setProfile] = useState<any>(null);
+
+  // Получаем профиль пользователя для получения salon_id
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user?.id) return;
+      
+      const { data } = await supabase
+        .from('profiles')
+        .select('salon_id')
+        .eq('id', user.id)
+        .single();
+      
+      setProfile(data);
+    };
+
+    fetchProfile();
+  }, [user?.id]);
 
   const {
     data: kpiMetrics,
@@ -36,16 +55,16 @@ export const useAnalytics = () => {
     error: kpiError,
     refetch: refetchKPI
   } = useQuery({
-    queryKey: ['kpi-metrics', user?.id],
+    queryKey: ['kpi-metrics', profile?.salon_id],
     queryFn: async (): Promise<KPIMetrics | null> => {
-      if (!user?.id) return null;
+      if (!profile?.salon_id) return null;
 
       const endDate = new Date();
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - 30);
 
       const { data, error } = await supabase.rpc('calculate_salon_kpi', {
-        salon_uuid: user.id,
+        salon_uuid: profile.salon_id,
         start_date: startDate.toISOString(),
         end_date: endDate.toISOString()
       });
@@ -57,7 +76,7 @@ export const useAnalytics = () => {
 
       return data as unknown as KPIMetrics;
     },
-    enabled: !!user?.id,
+    enabled: !!profile?.salon_id,
     staleTime: 5 * 60 * 1000, // 5 минут
   });
 
@@ -67,12 +86,12 @@ export const useAnalytics = () => {
     error: forecastError,
     refetch: refetchForecast
   } = useQuery({
-    queryKey: ['revenue-forecast', user?.id],
+    queryKey: ['revenue-forecast', profile?.salon_id],
     queryFn: async (): Promise<RevenueForecast | null> => {
-      if (!user?.id) return null;
+      if (!profile?.salon_id) return null;
 
       const { data, error } = await supabase.rpc('generate_revenue_forecast', {
-        salon_uuid: user.id,
+        salon_uuid: profile.salon_id,
         forecast_days: 30
       });
 
@@ -83,19 +102,19 @@ export const useAnalytics = () => {
 
       return data as unknown as RevenueForecast;
     },
-    enabled: !!user?.id,
+    enabled: !!profile?.salon_id,
     staleTime: 60 * 60 * 1000, // 1 час
   });
 
   const getWeeklyRevenue = useQuery({
-    queryKey: ['weekly-revenue', user?.id],
+    queryKey: ['weekly-revenue', profile?.salon_id],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!profile?.salon_id) return [];
 
       const { data, error } = await supabase
         .from('orders')
         .select('total_amount, created_at')
-        .eq('salon_id', user.id)
+        .eq('salon_id', profile.salon_id)
         .eq('payment_status', 'paid')
         .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
         .order('created_at', { ascending: true });
@@ -114,14 +133,14 @@ export const useAnalytics = () => {
         revenue
       }));
     },
-    enabled: !!user?.id,
+    enabled: !!profile?.salon_id,
     staleTime: 30 * 60 * 1000, // 30 минут
   });
 
   const getTopServices = useQuery({
-    queryKey: ['top-services', user?.id],
+    queryKey: ['top-services', profile?.salon_id],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!profile?.salon_id) return [];
 
       const { data, error } = await supabase
         .from('appointments')
@@ -130,7 +149,7 @@ export const useAnalytics = () => {
           services!inner(name, price),
           status
         `)
-        .eq('salon_id', user.id)
+        .eq('salon_id', profile.salon_id)
         .eq('status', 'completed')
         .gte('scheduled_date', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
 
@@ -160,7 +179,7 @@ export const useAnalytics = () => {
         .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 5);
     },
-    enabled: !!user?.id,
+    enabled: !!profile?.salon_id,
     staleTime: 60 * 60 * 1000, // 1 час
   });
 
