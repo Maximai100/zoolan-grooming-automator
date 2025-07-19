@@ -189,6 +189,33 @@ export type Database = {
           },
         ]
       }
+      campaign_interactions: {
+        Row: {
+          campaign_id: string
+          client_id: string
+          created_at: string | null
+          id: string
+          interaction_data: Json | null
+          interaction_type: string
+        }
+        Insert: {
+          campaign_id: string
+          client_id: string
+          created_at?: string | null
+          id?: string
+          interaction_data?: Json | null
+          interaction_type: string
+        }
+        Update: {
+          campaign_id?: string
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          interaction_data?: Json | null
+          interaction_type?: string
+        }
+        Relationships: []
+      }
       campaigns: {
         Row: {
           click_count: number | null
@@ -318,6 +345,81 @@ export type Database = {
         }
         Relationships: []
       }
+      client_activities: {
+        Row: {
+          activity_data: Json | null
+          activity_type: string
+          appointment_id: string | null
+          campaign_id: string | null
+          client_id: string
+          created_at: string | null
+          id: string
+          order_id: string | null
+        }
+        Insert: {
+          activity_data?: Json | null
+          activity_type: string
+          appointment_id?: string | null
+          campaign_id?: string | null
+          client_id: string
+          created_at?: string | null
+          id?: string
+          order_id?: string | null
+        }
+        Update: {
+          activity_data?: Json | null
+          activity_type?: string
+          appointment_id?: string | null
+          campaign_id?: string | null
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          order_id?: string | null
+        }
+        Relationships: []
+      }
+      client_loyalty_balances: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          current_points: number | null
+          id: string
+          last_activity_date: string | null
+          program_id: string
+          tier_achieved_at: string | null
+          tier_level: string | null
+          total_earned: number | null
+          total_redeemed: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          current_points?: number | null
+          id?: string
+          last_activity_date?: string | null
+          program_id: string
+          tier_achieved_at?: string | null
+          tier_level?: string | null
+          total_earned?: number | null
+          total_redeemed?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          current_points?: number | null
+          id?: string
+          last_activity_date?: string | null
+          program_id?: string
+          tier_achieved_at?: string | null
+          tier_level?: string | null
+          total_earned?: number | null
+          total_redeemed?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       client_memberships: {
         Row: {
           activation_date: string | null
@@ -357,6 +459,69 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           visits_remaining?: number | null
+        }
+        Relationships: []
+      }
+      client_segment_memberships: {
+        Row: {
+          added_at: string | null
+          client_id: string
+          id: string
+          last_qualified: string | null
+          segment_id: string
+        }
+        Insert: {
+          added_at?: string | null
+          client_id: string
+          id?: string
+          last_qualified?: string | null
+          segment_id: string
+        }
+        Update: {
+          added_at?: string | null
+          client_id?: string
+          id?: string
+          last_qualified?: string | null
+          segment_id?: string
+        }
+        Relationships: []
+      }
+      client_segments: {
+        Row: {
+          client_count: number | null
+          conditions: Json
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          last_updated: string | null
+          name: string
+          salon_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          client_count?: number | null
+          conditions: Json
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_updated?: string | null
+          name: string
+          salon_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          client_count?: number | null
+          conditions?: Json
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_updated?: string | null
+          name?: string
+          salon_id?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -482,6 +647,108 @@ export type Database = {
           valid_from?: string | null
           valid_until?: string | null
           value?: number
+        }
+        Relationships: []
+      }
+      loyalty_programs: {
+        Row: {
+          bonus_multiplier: number | null
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          is_active: boolean | null
+          min_redemption_points: number | null
+          name: string
+          point_value: number | null
+          points_per_ruble: number | null
+          points_per_visit: number | null
+          salon_id: string
+          start_date: string | null
+          terms_and_conditions: string | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          bonus_multiplier?: number | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          min_redemption_points?: number | null
+          name: string
+          point_value?: number | null
+          points_per_ruble?: number | null
+          points_per_visit?: number | null
+          salon_id: string
+          start_date?: string | null
+          terms_and_conditions?: string | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          bonus_multiplier?: number | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          min_redemption_points?: number | null
+          name?: string
+          point_value?: number | null
+          points_per_ruble?: number | null
+          points_per_visit?: number | null
+          salon_id?: string
+          start_date?: string | null
+          terms_and_conditions?: string | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      loyalty_transactions: {
+        Row: {
+          appointment_id: string | null
+          client_id: string
+          created_at: string | null
+          description: string | null
+          expires_at: string | null
+          id: string
+          order_id: string | null
+          points_amount: number
+          processed_by: string | null
+          program_id: string
+          reference_id: string | null
+          transaction_type: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          client_id: string
+          created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          order_id?: string | null
+          points_amount: number
+          processed_by?: string | null
+          program_id: string
+          reference_id?: string | null
+          transaction_type: string
+        }
+        Update: {
+          appointment_id?: string | null
+          client_id?: string
+          created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          order_id?: string | null
+          points_amount?: number
+          processed_by?: string | null
+          program_id?: string
+          reference_id?: string | null
+          transaction_type?: string
         }
         Relationships: []
       }
@@ -863,6 +1130,81 @@ export type Database = {
         }
         Relationships: []
       }
+      personal_offers: {
+        Row: {
+          bonus_points: number | null
+          client_id: string
+          created_at: string | null
+          description: string | null
+          discount_value: number | null
+          free_product_id: string | null
+          free_service_id: string | null
+          id: string
+          is_active: boolean | null
+          is_used: boolean | null
+          min_order_amount: number | null
+          offer_type: string
+          salon_id: string
+          title: string
+          trigger_condition: Json | null
+          updated_at: string | null
+          usage_count: number | null
+          usage_limit: number | null
+          used_at: string | null
+          used_in_order_id: string | null
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          bonus_points?: number | null
+          client_id: string
+          created_at?: string | null
+          description?: string | null
+          discount_value?: number | null
+          free_product_id?: string | null
+          free_service_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_used?: boolean | null
+          min_order_amount?: number | null
+          offer_type: string
+          salon_id: string
+          title: string
+          trigger_condition?: Json | null
+          updated_at?: string | null
+          usage_count?: number | null
+          usage_limit?: number | null
+          used_at?: string | null
+          used_in_order_id?: string | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          bonus_points?: number | null
+          client_id?: string
+          created_at?: string | null
+          description?: string | null
+          discount_value?: number | null
+          free_product_id?: string | null
+          free_service_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_used?: boolean | null
+          min_order_amount?: number | null
+          offer_type?: string
+          salon_id?: string
+          title?: string
+          trigger_condition?: Json | null
+          updated_at?: string | null
+          usage_count?: number | null
+          usage_limit?: number | null
+          used_at?: string | null
+          used_in_order_id?: string | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       pets: {
         Row: {
           age: number | null
@@ -1171,12 +1513,121 @@ export type Database = {
           },
         ]
       }
+      social_integrations: {
+        Row: {
+          access_token: string | null
+          account_id: string
+          account_name: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_sync: string | null
+          platform: string
+          refresh_token: string | null
+          salon_id: string
+          settings: Json | null
+          token_expires_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          account_id: string
+          account_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync?: string | null
+          platform: string
+          refresh_token?: string | null
+          salon_id: string
+          settings?: Json | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          account_id?: string
+          account_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync?: string | null
+          platform?: string
+          refresh_token?: string | null
+          salon_id?: string
+          settings?: Json | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      social_posts: {
+        Row: {
+          appointment_id: string | null
+          client_id: string | null
+          content: string
+          created_at: string | null
+          engagement_stats: Json | null
+          external_post_id: string | null
+          hashtags: string[] | null
+          id: string
+          integration_id: string
+          media_urls: string[] | null
+          post_type: string
+          posted_at: string | null
+          salon_id: string
+          scheduled_at: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          client_id?: string | null
+          content: string
+          created_at?: string | null
+          engagement_stats?: Json | null
+          external_post_id?: string | null
+          hashtags?: string[] | null
+          id?: string
+          integration_id: string
+          media_urls?: string[] | null
+          post_type: string
+          posted_at?: string | null
+          salon_id: string
+          scheduled_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          client_id?: string | null
+          content?: string
+          created_at?: string | null
+          engagement_stats?: Json | null
+          external_post_id?: string | null
+          hashtags?: string[] | null
+          id?: string
+          integration_id?: string
+          media_urls?: string[] | null
+          post_type?: string
+          posted_at?: string | null
+          salon_id?: string
+          scheduled_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       send_automatic_reminders: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      update_client_segments: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
