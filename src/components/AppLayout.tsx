@@ -1,11 +1,31 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Calendar, Users, Bell, BarChart3, Settings, Menu, Home, X } from "lucide-react";
+import { Calendar, Users, Bell, BarChart3, Settings, Menu, Home, X, LogOut } from "lucide-react";
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import Dashboard from "./Dashboard";
 
 const AppLayout = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { signOut, user } = useAuth();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось выйти из системы',
+        variant: 'destructive'
+      });
+    } else {
+      toast({
+        title: 'До свидания!',
+        description: 'Вы успешно вышли из системы'
+      });
+    }
+  };
 
   const navigation = [
     { id: "dashboard", name: "Дашборд", icon: Home },
@@ -120,13 +140,18 @@ const AppLayout = () => {
         </nav>
 
         <div className="absolute bottom-4 left-4 right-4">
-          <div className="bg-hero-gradient rounded-lg p-4 text-white text-center">
-            <div className="text-sm font-medium mb-2">Версия Профи</div>
-            <div className="text-xs opacity-90">Все функции доступны</div>
-            <Button variant="secondary" size="sm" className="mt-3 w-full">
-              Управление подпиской
-            </Button>
+          <div className="bg-muted rounded-lg p-3 mb-3">
+            <div className="text-xs text-muted-foreground mb-1">Пользователь</div>
+            <div className="text-sm font-medium truncate">{user?.email}</div>
           </div>
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-muted-foreground hover:text-destructive"
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Выйти
+          </Button>
         </div>
       </div>
 

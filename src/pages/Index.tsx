@@ -1,12 +1,20 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import LandingPage from "@/components/LandingPage";
-import AppLayout from "@/components/AppLayout";
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import LandingPage from '@/components/LandingPage';
+import AppLayout from '@/components/AppLayout';
 
 const Index = () => {
-  const [showApp, setShowApp] = useState(false);
+  const { user, loading } = useAuth();
 
-  if (showApp) {
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-primary flex items-center justify-center">
+        <div className="text-white text-lg">Загрузка...</div>
+      </div>
+    );
+  }
+
+  if (user) {
     return <AppLayout />;
   }
 
@@ -17,7 +25,7 @@ const Index = () => {
            e.target.textContent?.includes("Начать") ||
            e.target.closest('button')?.textContent?.includes("Попробовать") ||
            e.target.closest('button')?.textContent?.includes("Начать"))) {
-        setShowApp(true);
+        window.location.href = '/auth';
       }
     }}>
       <LandingPage />
