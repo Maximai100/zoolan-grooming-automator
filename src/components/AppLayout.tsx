@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import Dashboard from "./Dashboard";
 import ClientsPage from "./ClientsPage";
 import CalendarPage from "./CalendarPage";
+import NotificationsPage from "./NotificationsPage";
 
 const AppLayout = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -47,13 +48,7 @@ const AppLayout = () => {
       case "clients":
         return <ClientsPage />;
       case "reminders":
-        return (
-          <div className="text-center py-20">
-            <Bell className="w-16 h-16 text-primary mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Автонапоминания</h2>
-            <p className="text-muted-foreground">SMS, email и WhatsApp уведомления</p>
-          </div>
-        );
+        return <NotificationsPage />;
       case "analytics":
         return (
           <div className="text-center py-20">

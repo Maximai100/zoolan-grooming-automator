@@ -14,6 +14,85 @@ export type Database = {
   }
   public: {
     Tables: {
+      ab_tests: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          name: string
+          results: Json | null
+          salon_id: string
+          start_date: string | null
+          status: string
+          success_metric: string | null
+          template_a_id: string
+          template_b_id: string
+          traffic_split: number | null
+          trigger_event: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          results?: Json | null
+          salon_id: string
+          start_date?: string | null
+          status?: string
+          success_metric?: string | null
+          template_a_id: string
+          template_b_id: string
+          traffic_split?: number | null
+          trigger_event: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          results?: Json | null
+          salon_id?: string
+          start_date?: string | null
+          status?: string
+          success_metric?: string | null
+          template_a_id?: string
+          template_b_id?: string
+          traffic_split?: number | null
+          trigger_event?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ab_tests_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ab_tests_template_a_id_fkey"
+            columns: ["template_a_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ab_tests_template_b_id_fkey"
+            columns: ["template_b_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           client_id: string
@@ -110,6 +189,84 @@ export type Database = {
           },
         ]
       }
+      campaigns: {
+        Row: {
+          click_count: number | null
+          created_at: string | null
+          delivered_count: number | null
+          description: string | null
+          failed_count: number | null
+          id: string
+          name: string
+          open_count: number | null
+          salon_id: string
+          scheduled_at: string | null
+          sent_count: number | null
+          status: string
+          target_audience: Json
+          template_id: string
+          total_cost: number | null
+          total_recipients: number | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          click_count?: number | null
+          created_at?: string | null
+          delivered_count?: number | null
+          description?: string | null
+          failed_count?: number | null
+          id?: string
+          name: string
+          open_count?: number | null
+          salon_id: string
+          scheduled_at?: string | null
+          sent_count?: number | null
+          status?: string
+          target_audience: Json
+          template_id: string
+          total_cost?: number | null
+          total_recipients?: number | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          click_count?: number | null
+          created_at?: string | null
+          delivered_count?: number | null
+          description?: string | null
+          failed_count?: number | null
+          id?: string
+          name?: string
+          open_count?: number | null
+          salon_id?: string
+          scheduled_at?: string | null
+          sent_count?: number | null
+          status?: string
+          target_audience?: Json
+          template_id?: string
+          total_cost?: number | null
+          total_recipients?: number | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: string | null
@@ -168,6 +325,201 @@ export type Database = {
             columns: ["salon_id"]
             isOneToOne: false
             referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_templates: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          salon_id: string
+          subject: string | null
+          trigger_event: string
+          type: string
+          updated_at: string | null
+          variables: Json | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          salon_id: string
+          subject?: string | null
+          trigger_event: string
+          type: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          salon_id?: string
+          subject?: string | null
+          trigger_event?: string
+          type?: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_templates_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_settings: {
+        Row: {
+          api_key: string | null
+          api_settings: Json | null
+          created_at: string | null
+          daily_limit: number | null
+          id: string
+          is_enabled: boolean | null
+          monthly_limit: number | null
+          salon_id: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          api_key?: string | null
+          api_settings?: Json | null
+          created_at?: string | null
+          daily_limit?: number | null
+          id?: string
+          is_enabled?: boolean | null
+          monthly_limit?: number | null
+          salon_id: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          api_key?: string | null
+          api_settings?: Json | null
+          created_at?: string | null
+          daily_limit?: number | null
+          id?: string
+          is_enabled?: boolean | null
+          monthly_limit?: number | null
+          salon_id?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_settings_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          appointment_id: string | null
+          client_id: string
+          content: string
+          cost: number | null
+          created_at: string | null
+          delivered_at: string | null
+          error_message: string | null
+          id: string
+          provider_id: string | null
+          read_at: string | null
+          recipient: string
+          salon_id: string
+          sent_at: string | null
+          status: string
+          subject: string | null
+          template_id: string | null
+          trigger_event: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          client_id: string
+          content: string
+          cost?: number | null
+          created_at?: string | null
+          delivered_at?: string | null
+          error_message?: string | null
+          id?: string
+          provider_id?: string | null
+          read_at?: string | null
+          recipient: string
+          salon_id: string
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          template_id?: string | null
+          trigger_event: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          client_id?: string
+          content?: string
+          cost?: number | null
+          created_at?: string | null
+          delivered_at?: string | null
+          error_message?: string | null
+          id?: string
+          provider_id?: string | null
+          read_at?: string | null
+          recipient?: string
+          salon_id?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          template_id?: string | null
+          trigger_event?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -395,7 +747,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      send_automatic_reminders: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       appointment_status:
