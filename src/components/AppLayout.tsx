@@ -8,6 +8,7 @@ import Dashboard from "./Dashboard";
 import ClientsPage from "./ClientsPage";
 import CalendarPage from "./CalendarPage";
 import NotificationsPage from "./NotificationsPage";
+import StaffPage from "./StaffPage";
 import AnalyticsPage from "./AnalyticsPage";
 
 const AppLayout = () => {
@@ -36,6 +37,7 @@ const AppLayout = () => {
     { id: "dashboard", name: "Дашборд", icon: Home },
     { id: "calendar", name: "Календарь", icon: Calendar },
     { id: "clients", name: "Клиенты", icon: Users },
+    { id: "staff", name: "Персонал", icon: Users },
     { id: "reminders", name: "Напоминания", icon: Bell },
     { id: "analytics", name: "Аналитика", icon: BarChart3 },
     { id: "settings", name: "Настройки", icon: Settings },
@@ -60,6 +62,8 @@ const AppLayout = () => {
       case "clients":
         console.log('👥 Rendering ClientsPage');
         return <ClientsPage />;
+      case "staff":
+        return <StaffPage />;
       case "reminders":
         return <NotificationsPage />;
       case "analytics":

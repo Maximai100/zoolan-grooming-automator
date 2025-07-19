@@ -1249,6 +1249,69 @@ export type Database = {
         }
         Relationships: []
       }
+      payroll: {
+        Row: {
+          base_salary: number | null
+          bonus_amount: number | null
+          commission_amount: number | null
+          created_at: string | null
+          deductions: number | null
+          gross_amount: number
+          hours_worked: number | null
+          id: string
+          net_amount: number
+          overtime_hours: number | null
+          paid_at: string | null
+          period_end: string
+          period_start: string
+          salon_id: string
+          staff_id: string
+          status: string | null
+          tax_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_salary?: number | null
+          bonus_amount?: number | null
+          commission_amount?: number | null
+          created_at?: string | null
+          deductions?: number | null
+          gross_amount: number
+          hours_worked?: number | null
+          id?: string
+          net_amount: number
+          overtime_hours?: number | null
+          paid_at?: string | null
+          period_end: string
+          period_start: string
+          salon_id: string
+          staff_id: string
+          status?: string | null
+          tax_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          base_salary?: number | null
+          bonus_amount?: number | null
+          commission_amount?: number | null
+          created_at?: string | null
+          deductions?: number | null
+          gross_amount?: number
+          hours_worked?: number | null
+          id?: string
+          net_amount?: number
+          overtime_hours?: number | null
+          paid_at?: string | null
+          period_end?: string
+          period_start?: string
+          salon_id?: string
+          staff_id?: string
+          status?: string | null
+          tax_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       personal_offers: {
         Row: {
           bonus_points: number | null
@@ -1827,6 +1890,267 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_commissions: {
+        Row: {
+          appointment_id: string | null
+          commission_amount: number
+          commission_rate: number | null
+          commission_type: string | null
+          created_at: string | null
+          id: string
+          is_paid: boolean | null
+          order_id: string | null
+          paid_at: string | null
+          period_end: string
+          period_start: string
+          salon_id: string
+          service_amount: number
+          service_id: string | null
+          staff_id: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          commission_amount: number
+          commission_rate?: number | null
+          commission_type?: string | null
+          created_at?: string | null
+          id?: string
+          is_paid?: boolean | null
+          order_id?: string | null
+          paid_at?: string | null
+          period_end: string
+          period_start: string
+          salon_id: string
+          service_amount: number
+          service_id?: string | null
+          staff_id: string
+        }
+        Update: {
+          appointment_id?: string | null
+          commission_amount?: number
+          commission_rate?: number | null
+          commission_type?: string | null
+          created_at?: string | null
+          id?: string
+          is_paid?: boolean | null
+          order_id?: string | null
+          paid_at?: string | null
+          period_end?: string
+          period_start?: string
+          salon_id?: string
+          service_amount?: number
+          service_id?: string | null
+          staff_id?: string
+        }
+        Relationships: []
+      }
+      staff_messages: {
+        Row: {
+          channel_type: string | null
+          content: string
+          created_at: string | null
+          file_url: string | null
+          id: string
+          is_pinned: boolean | null
+          is_read: boolean | null
+          message_type: string | null
+          recipient_id: string | null
+          reply_to_id: string | null
+          salon_id: string
+          sender_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          channel_type?: string | null
+          content: string
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          is_read?: boolean | null
+          message_type?: string | null
+          recipient_id?: string | null
+          reply_to_id?: string | null
+          salon_id: string
+          sender_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          channel_type?: string | null
+          content?: string
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          is_read?: boolean | null
+          message_type?: string | null
+          recipient_id?: string | null
+          reply_to_id?: string | null
+          salon_id?: string
+          sender_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      staff_shifts: {
+        Row: {
+          actual_end_time: string | null
+          actual_start_time: string | null
+          break_minutes: number | null
+          created_at: string | null
+          end_time: string
+          id: string
+          notes: string | null
+          salon_id: string
+          shift_date: string
+          staff_id: string
+          start_time: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          actual_end_time?: string | null
+          actual_start_time?: string | null
+          break_minutes?: number | null
+          created_at?: string | null
+          end_time: string
+          id?: string
+          notes?: string | null
+          salon_id: string
+          shift_date: string
+          staff_id: string
+          start_time: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          actual_end_time?: string | null
+          actual_start_time?: string | null
+          break_minutes?: number | null
+          created_at?: string | null
+          end_time?: string
+          id?: string
+          notes?: string | null
+          salon_id?: string
+          shift_date?: string
+          staff_id?: string
+          start_time?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      staff_tasks: {
+        Row: {
+          actual_minutes: number | null
+          assigned_to: string | null
+          category: string | null
+          completed_at: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          due_date: string | null
+          estimated_minutes: number | null
+          id: string
+          notes: string | null
+          priority: string | null
+          salon_id: string
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          actual_minutes?: number | null
+          assigned_to?: string | null
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          estimated_minutes?: number | null
+          id?: string
+          notes?: string | null
+          priority?: string | null
+          salon_id: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          actual_minutes?: number | null
+          assigned_to?: string | null
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          estimated_minutes?: number | null
+          id?: string
+          notes?: string | null
+          priority?: string | null
+          salon_id?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      time_tracking: {
+        Row: {
+          break_end: string | null
+          break_start: string | null
+          clock_in: string
+          clock_out: string | null
+          created_at: string | null
+          hourly_rate: number | null
+          id: string
+          notes: string | null
+          overtime_hours: number | null
+          salon_id: string
+          shift_id: string | null
+          staff_id: string
+          total_hours: number | null
+          total_pay: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          break_end?: string | null
+          break_start?: string | null
+          clock_in: string
+          clock_out?: string | null
+          created_at?: string | null
+          hourly_rate?: number | null
+          id?: string
+          notes?: string | null
+          overtime_hours?: number | null
+          salon_id: string
+          shift_id?: string | null
+          staff_id: string
+          total_hours?: number | null
+          total_pay?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          break_end?: string | null
+          break_start?: string | null
+          clock_in?: string
+          clock_out?: string | null
+          created_at?: string | null
+          hourly_rate?: number | null
+          id?: string
+          notes?: string | null
+          overtime_hours?: number | null
+          salon_id?: string
+          shift_id?: string | null
+          staff_id?: string
+          total_hours?: number | null
+          total_pay?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1834,6 +2158,14 @@ export type Database = {
     Functions: {
       calculate_salon_kpi: {
         Args: { salon_uuid: string; start_date: string; end_date: string }
+        Returns: Json
+      }
+      calculate_staff_payroll: {
+        Args: {
+          staff_uuid: string
+          period_start_date: string
+          period_end_date: string
+        }
         Returns: Json
       }
       generate_revenue_forecast: {
