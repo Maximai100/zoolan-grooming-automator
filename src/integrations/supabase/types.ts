@@ -267,6 +267,99 @@ export type Database = {
           },
         ]
       }
+      cash_sessions: {
+        Row: {
+          card_sales: number | null
+          cash_sales: number | null
+          closed_at: string | null
+          closing_amount: number | null
+          created_at: string | null
+          expected_amount: number | null
+          id: string
+          notes: string | null
+          opened_at: string | null
+          opening_amount: number | null
+          salon_id: string
+          staff_id: string
+          status: string | null
+          tips_collected: number | null
+        }
+        Insert: {
+          card_sales?: number | null
+          cash_sales?: number | null
+          closed_at?: string | null
+          closing_amount?: number | null
+          created_at?: string | null
+          expected_amount?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string | null
+          opening_amount?: number | null
+          salon_id: string
+          staff_id: string
+          status?: string | null
+          tips_collected?: number | null
+        }
+        Update: {
+          card_sales?: number | null
+          cash_sales?: number | null
+          closed_at?: string | null
+          closing_amount?: number | null
+          created_at?: string | null
+          expected_amount?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string | null
+          opening_amount?: number | null
+          salon_id?: string
+          staff_id?: string
+          status?: string | null
+          tips_collected?: number | null
+        }
+        Relationships: []
+      }
+      client_memberships: {
+        Row: {
+          activation_date: string | null
+          client_id: string
+          created_at: string | null
+          expiry_date: string | null
+          id: string
+          membership_id: string
+          purchase_date: string | null
+          purchase_price: number
+          status: string | null
+          updated_at: string | null
+          visits_remaining: number | null
+        }
+        Insert: {
+          activation_date?: string | null
+          client_id: string
+          created_at?: string | null
+          expiry_date?: string | null
+          id?: string
+          membership_id: string
+          purchase_date?: string | null
+          purchase_price: number
+          status?: string | null
+          updated_at?: string | null
+          visits_remaining?: number | null
+        }
+        Update: {
+          activation_date?: string | null
+          client_id?: string
+          created_at?: string | null
+          expiry_date?: string | null
+          id?: string
+          membership_id?: string
+          purchase_date?: string | null
+          purchase_price?: number
+          status?: string | null
+          updated_at?: string | null
+          visits_remaining?: number | null
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           address: string | null
@@ -328,6 +421,117 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      discount_codes: {
+        Row: {
+          applicable_products: string[] | null
+          applicable_services: string[] | null
+          code: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          max_discount_amount: number | null
+          min_order_amount: number | null
+          name: string
+          per_client_limit: number | null
+          salon_id: string
+          type: string
+          updated_at: string | null
+          usage_count: number | null
+          usage_limit: number | null
+          valid_from: string | null
+          valid_until: string | null
+          value: number
+        }
+        Insert: {
+          applicable_products?: string[] | null
+          applicable_services?: string[] | null
+          code: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_discount_amount?: number | null
+          min_order_amount?: number | null
+          name: string
+          per_client_limit?: number | null
+          salon_id: string
+          type: string
+          updated_at?: string | null
+          usage_count?: number | null
+          usage_limit?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+          value: number
+        }
+        Update: {
+          applicable_products?: string[] | null
+          applicable_services?: string[] | null
+          code?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_discount_amount?: number | null
+          min_order_amount?: number | null
+          name?: string
+          per_client_limit?: number | null
+          salon_id?: string
+          type?: string
+          updated_at?: string | null
+          usage_count?: number | null
+          usage_limit?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+          value?: number
+        }
+        Relationships: []
+      }
+      memberships: {
+        Row: {
+          applicable_services: string[] | null
+          created_at: string | null
+          description: string | null
+          discount_percentage: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          price: number
+          salon_id: string
+          type: string
+          updated_at: string | null
+          validity_days: number | null
+          visits_included: number | null
+        }
+        Insert: {
+          applicable_services?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          discount_percentage?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          price: number
+          salon_id: string
+          type: string
+          updated_at?: string | null
+          validity_days?: number | null
+          visits_included?: number | null
+        }
+        Update: {
+          applicable_services?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          discount_percentage?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          price?: number
+          salon_id?: string
+          type?: string
+          updated_at?: string | null
+          validity_days?: number | null
+          visits_included?: number | null
+        }
+        Relationships: []
       }
       message_templates: {
         Row: {
@@ -524,6 +728,141 @@ export type Database = {
           },
         ]
       }
+      order_items: {
+        Row: {
+          created_at: string | null
+          discount_amount: number | null
+          id: string
+          item_type: string
+          order_id: string
+          product_id: string | null
+          quantity: number
+          service_id: string | null
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          discount_amount?: number | null
+          id?: string
+          item_type: string
+          order_id: string
+          product_id?: string | null
+          quantity?: number
+          service_id?: string | null
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string | null
+          discount_amount?: number | null
+          id?: string
+          item_type?: string
+          order_id?: string
+          product_id?: string | null
+          quantity?: number
+          service_id?: string | null
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          appointment_id: string | null
+          client_id: string | null
+          created_at: string | null
+          discount_amount: number | null
+          discount_code_id: string | null
+          id: string
+          notes: string | null
+          order_number: string
+          payment_method: string | null
+          payment_status: string | null
+          salon_id: string
+          staff_id: string | null
+          subtotal: number
+          tax_amount: number | null
+          tip_amount: number | null
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          discount_amount?: number | null
+          discount_code_id?: string | null
+          id?: string
+          notes?: string | null
+          order_number: string
+          payment_method?: string | null
+          payment_status?: string | null
+          salon_id: string
+          staff_id?: string | null
+          subtotal?: number
+          tax_amount?: number | null
+          tip_amount?: number | null
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          discount_amount?: number | null
+          discount_code_id?: string | null
+          id?: string
+          notes?: string | null
+          order_number?: string
+          payment_method?: string | null
+          payment_status?: string | null
+          salon_id?: string
+          staff_id?: string | null
+          subtotal?: number
+          tax_amount?: number | null
+          tip_amount?: number | null
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          method: string
+          order_id: string
+          processed_at: string | null
+          provider: string | null
+          provider_transaction_id: string | null
+          status: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          method: string
+          order_id: string
+          processed_at?: string | null
+          provider?: string | null
+          provider_transaction_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          method?: string
+          order_id?: string
+          processed_at?: string | null
+          provider?: string | null
+          provider_transaction_id?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       pets: {
         Row: {
           age: number | null
@@ -589,6 +928,60 @@ export type Database = {
           },
         ]
       }
+      products: {
+        Row: {
+          barcode: string | null
+          category: string | null
+          cost_price: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          min_stock_level: number | null
+          name: string
+          price: number
+          salon_id: string
+          sku: string | null
+          stock_quantity: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          barcode?: string | null
+          category?: string | null
+          cost_price?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          min_stock_level?: number | null
+          name: string
+          price: number
+          salon_id: string
+          sku?: string | null
+          stock_quantity?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          barcode?: string | null
+          category?: string | null
+          cost_price?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          min_stock_level?: number | null
+          name?: string
+          price?: number
+          salon_id?: string
+          sku?: string | null
+          stock_quantity?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -638,6 +1031,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      refunds: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          order_id: string
+          payment_id: string | null
+          processed_at: string | null
+          processed_by: string | null
+          reason: string | null
+          status: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          order_id: string
+          payment_id?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          status?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          order_id?: string
+          payment_id?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          status?: string | null
+        }
+        Relationships: []
       }
       salons: {
         Row: {
