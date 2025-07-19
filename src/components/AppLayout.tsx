@@ -4,6 +4,7 @@ import { Calendar, Users, Bell, BarChart3, Settings, Menu, Home, X, LogOut } fro
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import Dashboard from "./Dashboard";
+import ClientsPage from "./ClientsPage";
 
 const AppLayout = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -49,13 +50,7 @@ const AppLayout = () => {
           </div>
         );
       case "clients":
-        return (
-          <div className="text-center py-20">
-            <Users className="w-16 h-16 text-primary mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">База клиентов</h2>
-            <p className="text-muted-foreground">CRM для управления клиентами и их питомцами</p>
-          </div>
-        );
+        return <ClientsPage />;
       case "reminders":
         return (
           <div className="text-center py-20">

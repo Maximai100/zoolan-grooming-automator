@@ -1,0 +1,251 @@
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Pet } from '@/hooks/usePets';
+
+interface PetFormProps {
+  pet?: Pet;
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (data: any) => void;
+}
+
+const COMMON_BREEDS = [
+  'Лабрадор', 'Немецкая овчарка', 'Йоркширский терьер', 'Чихуахуа', 'Пудель',
+  'Хаски', 'Золотистый ретривер', 'Мальтийская болонка', 'Джек-рассел терьер',
+  'Мопс', 'Шпиц', 'Такса', 'Французский бульдог', 'Бигль', 'Метис'
+];
+
+const COAT_TYPES = [
+  'Короткая', 'Средняя', 'Длинная', 'Кудрявая', 'Жесткая', 'Двойная'
+];
+
+const COLORS = [
+  'Черный', 'Белый', 'Коричневый', 'Рыжий', 'Серый', 'Палевый',
+  'Пятнистый', 'Триколор', 'Мерле', 'Тигровый'
+];
+
+const GENDERS = ['Мужской', 'Женский'];
+
+const VACCINATION_STATUSES = [
+  'Актуальные', 'Просрочены', 'Частично', 'Неизвестно', 'Не вакцинирован'
+];
+
+export default function PetForm({ pet, open, onClose, onSubmit }: PetFormProps) {
+  const [formData, setFormData] = useState({
+    name: pet?.name || '',
+    breed: pet?.breed || '',
+    age: pet?.age || '',
+    weight: pet?.weight || '',
+    coat_type: pet?.coat_type || '',
+    color: pet?.color || '',
+    gender: pet?.gender || '',
+    allergies: pet?.allergies || '',
+    special_notes: pet?.special_notes || '',
+    vaccination_status: pet?.vaccination_status || '',
+    microchip_number: pet?.microchip_number || ''
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const submitData = {
+      ...formData,
+      age: formData.age ? Number(formData.age) : null,
+      weight: formData.weight ? Number(formData.weight) : null
+    };
+    onSubmit(submitData);
+    onClose();
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      breed: '',
+      age: '',
+      weight: '',
+      coat_type: '',
+      color: '',
+      gender: '',
+      allergies: '',
+      special_notes: '',
+      vaccination_status: '',
+      microchip_number: ''
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(open) => {
+      if (!open) {
+        onClose();
+        resetForm();
+      }
+    }}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {pet ? 'Редактировать питомца' : 'Новый питомец'}
+          </DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Кличка *</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                required
+                placeholder="Барсик"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="breed">Порода</Label>
+              <Select value={formData.breed} onValueChange={(value) => setFormData(prev => ({ ...prev, breed: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите породу" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COMMON_BREEDS.map(breed => (
+                    <SelectItem key={breed} value={breed}>{breed}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="age">Возраст (лет)</Label>
+              <Input
+                id="age"
+                type="number"
+                min="0"
+                max="30"
+                step="0.1"
+                value={formData.age}
+                onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
+                placeholder="3"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="weight">Вес (кг)</Label>
+              <Input
+                id="weight"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={formData.weight}
+                onChange={(e) => setFormData(prev => ({ ...prev, weight: e.target.value }))}
+                placeholder="25.5"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="gender">Пол</Label>
+              <Select value={formData.gender} onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Пол" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GENDERS.map(gender => (
+                    <SelectItem key={gender} value={gender}>{gender}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="coat_type">Тип шерсти</Label>
+              <Select value={formData.coat_type} onValueChange={(value) => setFormData(prev => ({ ...prev, coat_type: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Тип шерсти" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COAT_TYPES.map(type => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="color">Окрас</Label>
+              <Select value={formData.color} onValueChange={(value) => setFormData(prev => ({ ...prev, color: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Окрас" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COLORS.map(color => (
+                    <SelectItem key={color} value={color}>{color}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="vaccination_status">Статус вакцинации</Label>
+              <Select value={formData.vaccination_status} onValueChange={(value) => setFormData(prev => ({ ...prev, vaccination_status: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Статус вакцинации" />
+                </SelectTrigger>
+                <SelectContent>
+                  {VACCINATION_STATUSES.map(status => (
+                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="microchip_number">Номер чипа</Label>
+              <Input
+                id="microchip_number"
+                value={formData.microchip_number}
+                onChange={(e) => setFormData(prev => ({ ...prev, microchip_number: e.target.value }))}
+                placeholder="123456789012345"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="allergies">Аллергии и противопоказания</Label>
+            <Textarea
+              id="allergies"
+              value={formData.allergies}
+              onChange={(e) => setFormData(prev => ({ ...prev, allergies: e.target.value }))}
+              placeholder="Аллергия на определенные шампуни, лекарства..."
+              rows={2}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="special_notes">Особые заметки</Label>
+            <Textarea
+              id="special_notes"
+              value={formData.special_notes}
+              onChange={(e) => setFormData(prev => ({ ...prev, special_notes: e.target.value }))}
+              placeholder="Особенности поведения, предпочтения, медицинские особенности..."
+              rows={3}
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Отмена
+            </Button>
+            <Button type="submit" className="bg-gradient-primary">
+              {pet ? 'Сохранить' : 'Добавить'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
