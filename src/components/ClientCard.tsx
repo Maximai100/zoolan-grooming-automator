@@ -2,17 +2,19 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Phone, Mail, MapPin, Star, Edit3, Trash2, Heart } from 'lucide-react';
+import { Phone, Mail, MapPin, Star, Edit3, Trash2, Heart, Calendar, Clock, DollarSign } from 'lucide-react';
 import { Client } from '@/hooks/useClients';
 
 interface ClientCardProps {
   client: Client;
+  petsCount?: number;
   onEdit: (client: Client) => void;
   onDelete: (id: string) => void;
   onViewPets: (client: Client) => void;
+  onScheduleAppointment?: (client: Client) => void;
 }
 
-export default function ClientCard({ client, onEdit, onDelete, onViewPets }: ClientCardProps) {
+export default function ClientCard({ client, petsCount = 0, onEdit, onDelete, onViewPets, onScheduleAppointment }: ClientCardProps) {
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
@@ -106,22 +108,38 @@ export default function ClientCard({ client, onEdit, onDelete, onViewPets }: Cli
           )}
         </div>
 
-        <div className="flex justify-between items-center pt-2 border-t border-border">
-          <div className="space-y-1">
-            <div className="flex items-center gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Визитов: </span>
-                <span className="font-medium">{client.total_visits}</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Потрачено: </span>
-                <span className="font-medium">{client.total_spent} ₽</span>
-              </div>
+        {/* Статистика клиента */}
+        <div className="grid grid-cols-3 gap-3 py-3 border-t border-b">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 text-sm font-medium">
+              <Heart className="h-3 w-3 text-red-500" />
+              {petsCount}
             </div>
-            <div className="text-xs text-muted-foreground">
-              Последний визит: {formatLastVisit(client.last_visit_date)}
-            </div>
+            <p className="text-xs text-muted-foreground">
+              {petsCount === 1 ? 'питомец' : petsCount < 5 ? 'питомца' : 'питомцев'}
+            </p>
           </div>
+          
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 text-sm font-medium">
+              <Clock className="h-3 w-3 text-blue-500" />
+              {client.total_visits || 0}
+            </div>
+            <p className="text-xs text-muted-foreground">визитов</p>
+          </div>
+          
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 text-sm font-medium">
+              <DollarSign className="h-3 w-3 text-green-500" />
+              {client.total_spent ? Math.round(client.total_spent) : 0}
+            </div>
+            <p className="text-xs text-muted-foreground">потрачено</p>
+          </div>
+        </div>
+
+        <div className="text-xs text-muted-foreground">
+          <span>Последний визит: </span>
+          <span className="font-medium">{formatLastVisit(client.last_visit_date)}</span>
         </div>
 
         <div className="flex gap-2 pt-2">
@@ -131,13 +149,15 @@ export default function ClientCard({ client, onEdit, onDelete, onViewPets }: Cli
             onClick={() => onViewPets(client)}
             className="flex-1"
           >
-            <Heart className="h-4 w-4 mr-2" />
+            <Heart className="h-3 w-3 mr-1" />
             Питомцы
           </Button>
           <Button 
             size="sm" 
+            onClick={() => onScheduleAppointment?.(client)}
             className="flex-1 bg-gradient-primary"
           >
+            <Calendar className="h-3 w-3 mr-1" />
             Записать
           </Button>
         </div>
