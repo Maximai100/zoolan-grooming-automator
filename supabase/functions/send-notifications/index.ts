@@ -24,53 +24,194 @@ const supabase = createClient(
 );
 
 const sendSMS = async (phone: string, message: string) => {
-  // Здесь должна быть интеграция с SMS провайдером (например, Twilio)
-  console.log(`Отправка SMS на ${phone}: ${message}`);
+  const twilioSid = Deno.env.get('TWILIO_ACCOUNT_SID');
+  const twilioToken = Deno.env.get('TWILIO_AUTH_TOKEN');
+  const twilioFrom = Deno.env.get('TWILIO_FROM_NUMBER');
   
-  // Для демо - просто возвращаем успех
-  return {
-    success: true,
-    provider_id: `sms_${Date.now()}`,
-    cost: 0.05 // Примерная стоимость SMS
-  };
+  if (!twilioSid || !twilioToken || !twilioFrom) {
+    console.log(`Демо SMS на ${phone}: ${message}`);
+    return {
+      success: true,
+      provider_id: `demo_sms_${Date.now()}`,
+      cost: 0.05
+    };
+  }
+  
+  try {
+    const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${btoa(`${twilioSid}:${twilioToken}`)}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        To: phone,
+        From: twilioFrom,
+        Body: message,
+      }),
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Ошибка отправки SMS');
+    }
+
+    return {
+      success: true,
+      provider_id: data.sid,
+      cost: 0.05
+    };
+  } catch (error) {
+    console.error('SMS send error:', error);
+    return {
+      success: false,
+      error: error.message,
+      cost: 0
+    };
+  }
 };
 
 const sendEmail = async (email: string, subject: string, content: string) => {
-  // Здесь должна быть интеграция с email провайдером (например, Resend)
-  console.log(`Отправка Email на ${email}:`);
-  console.log(`Тема: ${subject}`);
-  console.log(`Содержание: ${content}`);
+  const resendApiKey = Deno.env.get('RESEND_API_KEY');
+  const fromEmail = Deno.env.get('RESEND_FROM_EMAIL') || 'Зооплан <noreply@zooplan.ru>';
   
-  // Для демо - просто возвращаем успех
-  return {
-    success: true,
-    provider_id: `email_${Date.now()}`,
-    cost: 0.01 // Примерная стоимость Email
-  };
+  if (!resendApiKey) {
+    console.log(`Демо Email на ${email}: ${subject} - ${content}`);
+    return {
+      success: true,
+      provider_id: `demo_email_${Date.now()}`,
+      cost: 0.01
+    };
+  }
+  
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: [email],
+        subject: subject,
+        html: content.replace(/\n/g, '<br>'),
+      }),
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Ошибка отправки Email');
+    }
+
+    return {
+      success: true,
+      provider_id: data.id,
+      cost: 0.01
+    };
+  } catch (error) {
+    console.error('Email send error:', error);
+    return {
+      success: false,
+      error: error.message,
+      cost: 0
+    };
+  }
 };
 
 const sendWhatsApp = async (phone: string, message: string) => {
-  // Здесь должна быть интеграция с WhatsApp Business API
-  console.log(`Отправка WhatsApp на ${phone}: ${message}`);
+  const whatsappToken = Deno.env.get('WHATSAPP_TOKEN');
+  const phoneNumberId = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID');
   
-  // Для демо - просто возвращаем успех
-  return {
-    success: true,
-    provider_id: `wa_${Date.now()}`,
-    cost: 0.03 // Примерная стоимость WhatsApp
-  };
+  if (!whatsappToken || !phoneNumberId) {
+    console.log(`Демо WhatsApp на ${phone}: ${message}`);
+    return {
+      success: true,
+      provider_id: `demo_wa_${Date.now()}`,
+      cost: 0.03
+    };
+  }
+  
+  try {
+    const response = await fetch(`https://graph.facebook.com/v17.0/${phoneNumberId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${whatsappToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        to: phone,
+        type: 'text',
+        text: { body: message },
+      }),
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error?.message || 'Ошибка отправки WhatsApp');
+    }
+
+    return {
+      success: true,
+      provider_id: data.messages[0].id,
+      cost: 0.03
+    };
+  } catch (error) {
+    console.error('WhatsApp send error:', error);
+    return {
+      success: false,
+      error: error.message,
+      cost: 0
+    };
+  }
 };
 
 const sendTelegram = async (chatId: string, message: string) => {
-  // Здесь должна быть интеграция с Telegram Bot API
-  console.log(`Отправка Telegram в ${chatId}: ${message}`);
+  const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
   
-  // Для демо - просто возвращаем успех
-  return {
-    success: true,
-    provider_id: `tg_${Date.now()}`,
-    cost: 0.01 // Примерная стоимость Telegram
-  };
+  if (!botToken) {
+    console.log(`Демо Telegram в ${chatId}: ${message}`);
+    return {
+      success: true,
+      provider_id: `demo_tg_${Date.now()}`,
+      cost: 0.01
+    };
+  }
+  
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: 'HTML',
+      }),
+    });
+
+    const data = await response.json();
+    
+    if (!data.ok) {
+      throw new Error(data.description || 'Ошибка отправки Telegram');
+    }
+
+    return {
+      success: true,
+      provider_id: data.result.message_id.toString(),
+      cost: 0.01
+    };
+  } catch (error) {
+    console.error('Telegram send error:', error);
+    return {
+      success: false,
+      error: error.message,
+      cost: 0
+    };
+  }
 };
 
 const replaceVariables = (content: string, variables: any = {}) => {

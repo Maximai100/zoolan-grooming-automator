@@ -59,10 +59,9 @@ const Dashboard = () => {
 
   // Недавние клиенты
   useEffect(() => {
-    if (!clientsLoading) {
+    if (!clientsLoading && clients) {
       if (clients.length > 0) {
-        const recent = clients
-          .slice()
+        const recent = [...clients]
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
           .slice(0, 5);
         setRecentClients(recent);

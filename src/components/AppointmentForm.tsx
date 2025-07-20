@@ -17,6 +17,7 @@ import { Appointment } from '@/hooks/useAppointments';
 import { useClients } from '@/hooks/useClients';
 import { usePets } from '@/hooks/usePets';
 import { useServices } from '@/hooks/useServices';
+import { useToast } from '@/hooks/use-toast';
 
 interface AppointmentFormProps {
   appointment?: Appointment | null;
@@ -62,6 +63,7 @@ export default function AppointmentForm({
   const { clients } = useClients();
   const { pets } = usePets();
   const { services } = useServices();
+  const { toast } = useToast();
 
   const [formData, setFormData] = useState({
     client_id: appointment?.client_id || '',
@@ -99,9 +101,34 @@ export default function AppointmentForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Валидация
-    if (!formData.client_id || !formData.pet_id || !formData.service_id || 
-        !formData.scheduled_date || !formData.scheduled_time) {
+    // Расширенная валидация
+    const requiredFields = [
+      { field: 'client_id', name: 'Клиент' },
+      { field: 'pet_id', name: 'Питомец' },
+      { field: 'service_id', name: 'Услуга' },
+      { field: 'scheduled_date', name: 'Дата' },
+      { field: 'scheduled_time', name: 'Время' }
+    ];
+
+    const missingFields = requiredFields.filter(({ field }) => !formData[field]);
+    
+    if (missingFields.length > 0) {
+      toast({
+        title: "Ошибка валидации",
+        description: `Не заполнены обязательные поля: ${missingFields.map(f => f.name).join(', ')}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Проверка, что выбранный питомец принадлежит выбранному клиенту
+    const selectedPet = pets.find(p => p.id === formData.pet_id);
+    if (selectedPet && selectedPet.client_id !== formData.client_id) {
+      toast({
+        title: "Ошибка валидации",
+        description: "Выбранный питомец не принадлежит выбранному клиенту",
+        variant: "destructive"
+      });
       return;
     }
 
