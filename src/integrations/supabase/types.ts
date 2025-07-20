@@ -1053,6 +1053,292 @@ export type Database = {
           },
         ]
       }
+      messenger_automation_rules: {
+        Row: {
+          conditions: Json | null
+          created_at: string | null
+          delay_minutes: number | null
+          id: string
+          integration_id: string
+          is_active: boolean | null
+          rule_name: string
+          salon_id: string
+          template_id: string | null
+          trigger_event: string
+          updated_at: string | null
+        }
+        Insert: {
+          conditions?: Json | null
+          created_at?: string | null
+          delay_minutes?: number | null
+          id?: string
+          integration_id: string
+          is_active?: boolean | null
+          rule_name: string
+          salon_id: string
+          template_id?: string | null
+          trigger_event: string
+          updated_at?: string | null
+        }
+        Update: {
+          conditions?: Json | null
+          created_at?: string | null
+          delay_minutes?: number | null
+          id?: string
+          integration_id?: string
+          is_active?: boolean | null
+          rule_name?: string
+          salon_id?: string
+          template_id?: string | null
+          trigger_event?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messenger_automation_rules_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "messenger_integrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messenger_automation_rules_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "messenger_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messenger_contacts: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          external_id: string
+          first_name: string | null
+          id: string
+          is_blocked: boolean | null
+          last_message_at: string | null
+          last_name: string | null
+          phone_number: string | null
+          platform: string
+          profile_photo_url: string | null
+          salon_id: string
+          updated_at: string | null
+          username: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          external_id: string
+          first_name?: string | null
+          id?: string
+          is_blocked?: boolean | null
+          last_message_at?: string | null
+          last_name?: string | null
+          phone_number?: string | null
+          platform: string
+          profile_photo_url?: string | null
+          salon_id: string
+          updated_at?: string | null
+          username?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          external_id?: string
+          first_name?: string | null
+          id?: string
+          is_blocked?: boolean | null
+          last_message_at?: string | null
+          last_name?: string | null
+          phone_number?: string | null
+          platform?: string
+          profile_photo_url?: string | null
+          salon_id?: string
+          updated_at?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      messenger_integrations: {
+        Row: {
+          api_token: string | null
+          bot_username: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_sync_at: string | null
+          phone_number: string | null
+          platform: string
+          salon_id: string
+          settings: Json | null
+          updated_at: string | null
+          verification_status: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          api_token?: string | null
+          bot_username?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          phone_number?: string | null
+          platform: string
+          salon_id: string
+          settings?: Json | null
+          updated_at?: string | null
+          verification_status?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          api_token?: string | null
+          bot_username?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          phone_number?: string | null
+          platform?: string
+          salon_id?: string
+          settings?: Json | null
+          updated_at?: string | null
+          verification_status?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
+      messenger_messages: {
+        Row: {
+          appointment_id: string | null
+          client_id: string | null
+          contact_id: string
+          content: string | null
+          created_at: string | null
+          delivered_at: string | null
+          error_message: string | null
+          external_message_id: string | null
+          id: string
+          is_outgoing: boolean
+          media_url: string | null
+          message_type: string
+          metadata: Json | null
+          read_at: string | null
+          salon_id: string
+          sent_at: string | null
+          status: string | null
+          template_id: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          client_id?: string | null
+          contact_id: string
+          content?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          error_message?: string | null
+          external_message_id?: string | null
+          id?: string
+          is_outgoing: boolean
+          media_url?: string | null
+          message_type: string
+          metadata?: Json | null
+          read_at?: string | null
+          salon_id: string
+          sent_at?: string | null
+          status?: string | null
+          template_id?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          client_id?: string | null
+          contact_id?: string
+          content?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          error_message?: string | null
+          external_message_id?: string | null
+          id?: string
+          is_outgoing?: boolean
+          media_url?: string | null
+          message_type?: string
+          metadata?: Json | null
+          read_at?: string | null
+          salon_id?: string
+          sent_at?: string | null
+          status?: string | null
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messenger_messages_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "messenger_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messenger_templates: {
+        Row: {
+          approval_status: string | null
+          content: string
+          created_at: string | null
+          external_template_id: string | null
+          id: string
+          integration_id: string
+          is_active: boolean | null
+          media_type: string | null
+          media_url: string | null
+          name: string
+          salon_id: string
+          template_type: string
+          updated_at: string | null
+          variables: Json | null
+        }
+        Insert: {
+          approval_status?: string | null
+          content: string
+          created_at?: string | null
+          external_template_id?: string | null
+          id?: string
+          integration_id: string
+          is_active?: boolean | null
+          media_type?: string | null
+          media_url?: string | null
+          name: string
+          salon_id: string
+          template_type: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Update: {
+          approval_status?: string | null
+          content?: string
+          created_at?: string | null
+          external_template_id?: string | null
+          id?: string
+          integration_id?: string
+          is_active?: boolean | null
+          media_type?: string | null
+          media_url?: string | null
+          name?: string
+          salon_id?: string
+          template_type?: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messenger_templates_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "messenger_integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_settings: {
         Row: {
           api_key: string | null
@@ -2513,9 +2799,23 @@ export type Database = {
         }
         Returns: string
       }
+      process_messenger_webhook: {
+        Args: { _salon_id: string; _platform: string; _webhook_data: Json }
+        Returns: string
+      }
       send_automatic_reminders: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      send_messenger_notification: {
+        Args: {
+          _salon_id: string
+          _client_id: string
+          _platform: string
+          _template_id: string
+          _variables?: Json
+        }
+        Returns: string
       }
       update_client_segments: {
         Args: Record<PropertyKey, never>

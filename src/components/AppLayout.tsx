@@ -18,7 +18,8 @@ import {
   Menu,
   X,
   CreditCard,
-  Shield
+  Shield,
+  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -38,6 +39,7 @@ const navigation = [
   { name: 'Лояльность', href: '/loyalty', icon: Gift },
   { name: 'Подписка', href: '/subscription', icon: CreditCard },
   { name: 'Безопасность', href: '/security', icon: Shield },
+  { name: 'Мессенджеры', href: '/messengers', icon: MessageSquare },
   { name: 'Настройки', href: '/settings', icon: Settings },
 ];
 
