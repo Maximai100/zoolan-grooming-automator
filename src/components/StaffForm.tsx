@@ -48,23 +48,28 @@ const StaffForm = ({ open, onClose, onStaffAdded }: StaffFormProps) => {
         throw new Error('Не удалось определить салон');
       }
 
-      // Создаем полноценного пользователя через Admin API
-      const { data: newUser, error: userError } = await supabase.auth.admin.createUser({
+      // Создаем приглашение через публичное API регистрации
+      const { data: newUser, error: userError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
-        email_confirm: true,
-        user_metadata: {
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          phone: formData.phone,
-          role: formData.role,
-          salon_id: profile.salon_id
+        options: {
+          data: {
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            phone: formData.phone,
+            role: formData.role,
+            salon_id: profile.salon_id
+          }
         }
       });
       
       if (userError) throw userError;
       
-      // Создаем профиль сотрудника
+      if (!newUser.user) {
+        throw new Error('Не удалось создать пользователя');
+      }
+      
+      // Создаем профиль сотрудника напрямую
       const { error: profileError } = await supabase
         .from('profiles')
         .insert([{
