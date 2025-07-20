@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Plus, Minus, ShoppingCart, CreditCard, Trash2, Receipt } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, CreditCard, Trash2, Receipt, Grid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -33,6 +33,7 @@ export default function POSPage() {
   const [appliedDiscount, setAppliedDiscount] = useState<any>(null);
   const [tipAmount, setTipAmount] = useState<number>(0);
   const [notes, setNotes] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
   const { services } = useServices();
   const { clients } = useClients();
@@ -207,15 +208,33 @@ export default function POSPage() {
             
             <TabsContent value="services" className="space-y-4">
               <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle>Услуги</CardTitle>
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant={viewMode === 'grid' ? 'default' : 'outline'}
+                      onClick={() => setViewMode('grid')}
+                    >
+                      <Grid className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={viewMode === 'list' ? 'default' : 'outline'}
+                      onClick={() => setViewMode('list')}
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-3' : 'space-y-2'}>
                     {services.map(service => (
                       <div
                         key={service.id}
-                        className="p-3 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
+                        className={`border rounded-lg hover:bg-accent cursor-pointer transition-colors ${
+                          viewMode === 'grid' ? 'p-3' : 'p-2'
+                        }`}
                         onClick={() => addToCart({
                           id: service.id,
                           name: service.name,
@@ -223,21 +242,37 @@ export default function POSPage() {
                           type: 'service'
                         })}
                       >
-                        <div className="flex justify-between items-start">
-                          <div>
+                        <div className={`flex ${viewMode === 'grid' ? 'justify-between items-start' : 'items-center justify-between'}`}>
+                          <div className={viewMode === 'grid' ? '' : 'flex items-center gap-3'}>
                             <h3 className="font-medium">{service.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {service.duration_minutes} мин
-                            </p>
-                            {service.category && (
-                              <Badge variant="secondary" className="mt-1">
-                                {service.category}
-                              </Badge>
+                            {viewMode === 'grid' && (
+                              <>
+                                <p className="text-sm text-muted-foreground">
+                                  {service.duration_minutes} мин
+                                </p>
+                                {service.category && (
+                                  <Badge variant="secondary" className="mt-1">
+                                    {service.category}
+                                  </Badge>
+                                )}
+                              </>
+                            )}
+                            {viewMode === 'list' && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-muted-foreground">
+                                  {service.duration_minutes} мин
+                                </span>
+                                {service.category && (
+                                  <Badge variant="secondary">
+                                    {service.category}
+                                  </Badge>
+                                )}
+                              </div>
                             )}
                           </div>
-                          <div className="text-right">
+                          <div className={`text-right ${viewMode === 'list' ? 'flex items-center gap-2' : ''}`}>
                             <p className="font-semibold">{service.price} ₽</p>
-                            <Button size="sm" className="mt-1 bg-gradient-primary text-white">
+                            <Button size="sm" className={`${viewMode === 'grid' ? 'mt-1' : ''} bg-gradient-primary text-white`}>
                               <Plus className="h-3 w-3" />
                             </Button>
                           </div>
@@ -251,8 +286,24 @@ export default function POSPage() {
 
             <TabsContent value="products" className="space-y-4">
               <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle>Товары</CardTitle>
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant={viewMode === 'grid' ? 'default' : 'outline'}
+                      onClick={() => setViewMode('grid')}
+                    >
+                      <Grid className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={viewMode === 'list' ? 'default' : 'outline'}
+                      onClick={() => setViewMode('list')}
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

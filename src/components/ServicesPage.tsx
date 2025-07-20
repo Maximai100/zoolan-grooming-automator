@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { 
   Plus, Search, Scissors, Clock, DollarSign, 
   Edit, Trash2, Package, Settings, Star,
-  Filter, RefreshCw
+  Filter, RefreshCw, Grid, List
 } from 'lucide-react';
 
 const ServicesPage = () => {
@@ -25,6 +25,7 @@ const ServicesPage = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [editingService, setEditingService] = useState(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
   // Форма услуги
   const [formData, setFormData] = useState({
@@ -155,6 +156,22 @@ const ServicesPage = () => {
           <p className="text-muted-foreground">Управление прайс-листом и услугами салона</p>
         </div>
         <div className="flex gap-2">
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              onClick={() => setViewMode('grid')}
+            >
+              <Grid className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              onClick={() => setViewMode('list')}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
           <Button onClick={refetch} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
             Обновить
@@ -246,7 +263,7 @@ const ServicesPage = () => {
       </div>
 
       {/* Список услуг */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
         {filteredServices.length === 0 ? (
           <div className="col-span-full">
             <Card>
@@ -273,64 +290,119 @@ const ServicesPage = () => {
           </div>
         ) : (
           filteredServices.map((service) => (
-            <Card key={service.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">{service.name}</CardTitle>
-                    {service.category && (
-                      <Badge variant="secondary" className="mt-1">
-                        {service.category}
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    {!service.is_active && (
-                      <Badge variant="destructive">Неактивна</Badge>
-                    )}
-                  </div>
-                </div>
-                {service.description && (
-                  <CardDescription className="mt-2">
-                    {service.description}
-                  </CardDescription>
-                )}
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                    <div className="flex items-center space-x-1">
-                      <Clock className="h-4 w-4" />
-                      <span>{service.duration_minutes} мин</span>
+            viewMode === 'grid' ? (
+              <Card key={service.id} className="hover:shadow-md transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">{service.name}</CardTitle>
+                      {service.category && (
+                        <Badge variant="secondary" className="mt-1">
+                          {service.category}
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex items-center space-x-1">
-                      <DollarSign className="h-4 w-4" />
-                      <span className="font-semibold text-foreground">₽{service.price}</span>
+                      {!service.is_active && (
+                        <Badge variant="destructive">Неактивна</Badge>
+                      )}
                     </div>
                   </div>
-                </div>
-                
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(service)}
-                    className="flex-1 bg-card text-foreground border-input hover:bg-accent"
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Изменить
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(service.id)}
-                    className="bg-card text-foreground border-input hover:bg-destructive hover:text-destructive-foreground"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                  {service.description && (
+                    <CardDescription className="mt-2">
+                      {service.description}
+                    </CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                      <div className="flex items-center space-x-1">
+                        <Clock className="h-4 w-4" />
+                        <span>{service.duration_minutes} мин</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <DollarSign className="h-4 w-4" />
+                        <span className="font-semibold text-foreground">₽{service.price}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(service)}
+                      className="flex-1 bg-card text-foreground border-input hover:bg-accent"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Изменить
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(service.id)}
+                      className="bg-card text-foreground border-input hover:bg-destructive hover:text-destructive-foreground"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card key={service.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium">{service.name}</h3>
+                          {service.category && (
+                            <Badge variant="secondary">{service.category}</Badge>
+                          )}
+                          {!service.is_active && (
+                            <Badge variant="destructive">Неактивна</Badge>
+                          )}
+                        </div>
+                        {service.description && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {service.description}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          <span>{service.duration_minutes} мин</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <DollarSign className="h-4 w-4" />
+                          <span className="font-semibold text-foreground">₽{service.price}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(service)}
+                        className="bg-card text-foreground border-input hover:bg-accent"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(service.id)}
+                        className="bg-card text-foreground border-input hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )
           ))
         )}
       </div>
