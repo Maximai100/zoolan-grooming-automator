@@ -229,19 +229,13 @@ export default function POSPage() {
                 </CardHeader>
                 <CardContent>
                   <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-3' : 'space-y-2'}>
-                    {services.map(service => (
-                      <div
-                        key={service.id}
-                        className={`border rounded-lg hover:bg-accent cursor-pointer transition-colors ${
-                          viewMode === 'grid' ? 'p-3' : 'p-2'
-                        }`}
-                        onClick={() => addToCart({
-                          id: service.id,
-                          name: service.name,
-                          price: service.price,
-                          type: 'service'
-                        })}
-                      >
+                     {services.map(service => (
+                       <div
+                         key={service.id}
+                         className={`border rounded-lg hover:bg-accent transition-colors ${
+                           viewMode === 'grid' ? 'p-3' : 'p-2'
+                         }`}
+                       >
                         <div className={`flex ${viewMode === 'grid' ? 'justify-between items-start' : 'items-center justify-between'}`}>
                           <div className={viewMode === 'grid' ? '' : 'flex items-center gap-3'}>
                             <h3 className="font-medium">{service.name}</h3>
@@ -270,12 +264,21 @@ export default function POSPage() {
                               </div>
                             )}
                           </div>
-                          <div className={`text-right ${viewMode === 'list' ? 'flex items-center gap-2' : ''}`}>
-                            <p className="font-semibold">{service.price} ₽</p>
-                            <Button size="sm" className={`${viewMode === 'grid' ? 'mt-1' : ''} bg-gradient-primary text-white`}>
-                              <Plus className="h-3 w-3" />
-                            </Button>
-                          </div>
+                           <div className={`text-right ${viewMode === 'list' ? 'flex items-center gap-2' : ''}`}>
+                             <p className="font-semibold">{service.price} ₽</p>
+                             <Button 
+                               size="sm" 
+                               className={`${viewMode === 'grid' ? 'mt-1' : ''} bg-gradient-primary text-white`}
+                               onClick={() => addToCart({
+                                 id: service.id,
+                                 name: service.name,
+                                 price: service.price,
+                                 type: 'service'
+                               })}
+                             >
+                               <Plus className="h-3 w-3" />
+                             </Button>
+                           </div>
                         </div>
                       </div>
                     ))}
@@ -307,22 +310,15 @@ export default function POSPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {products.map(product => (
-                      <div
-                        key={product.id}
-                        className={`p-3 border rounded-lg transition-colors ${
-                          product.current_stock > 0 
-                            ? 'hover:bg-accent cursor-pointer' 
-                            : 'opacity-50 cursor-not-allowed bg-muted'
-                        }`}
-                        onClick={() => product.current_stock > 0 && addToCart({
-                          id: product.id,
-                          name: product.name,
-                          price: product.unit_price || product.unit_cost,
-                          type: 'product',
-                          stock: product.current_stock
-                        })}
-                      >
+                     {products.map(product => (
+                       <div
+                         key={product.id}
+                         className={`p-3 border rounded-lg transition-colors ${
+                           product.current_stock > 0 
+                             ? 'hover:bg-accent' 
+                             : 'opacity-50 cursor-not-allowed bg-muted'
+                         }`}
+                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <h3 className="font-medium">{product.name}</h3>
@@ -347,11 +343,21 @@ export default function POSPage() {
                           </div>
                           <div className="text-right">
                             <p className="font-semibold">{product.unit_price || product.unit_cost} ₽</p>
-                            {product.current_stock > 0 ? (
-                              <Button size="sm" className="mt-1 bg-gradient-primary text-white">
-                                <Plus className="h-3 w-3" />
-                              </Button>
-                            ) : (
+                             {product.current_stock > 0 ? (
+                               <Button 
+                                 size="sm" 
+                                 className="mt-1 bg-gradient-primary text-white"
+                                 onClick={() => addToCart({
+                                   id: product.id,
+                                   name: product.name,
+                                   price: product.unit_price || product.unit_cost,
+                                   type: 'product',
+                                   stock: product.current_stock
+                                 })}
+                               >
+                                 <Plus className="h-3 w-3" />
+                               </Button>
+                             ) : (
                               <Badge variant="destructive" className="mt-1">
                                 Нет в наличии
                               </Badge>
