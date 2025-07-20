@@ -12,9 +12,10 @@ interface PetsModalProps {
   client: any;
   open: boolean;
   onClose: () => void;
+  onScheduleGrooming?: (client: any, pet: any) => void;
 }
 
-export default function PetsModal({ client, open, onClose }: PetsModalProps) {
+export default function PetsModal({ client, open, onClose, onScheduleGrooming }: PetsModalProps) {
   const { pets, loading, addPet, updatePet, deletePet, calculateServiceTime } = usePets(client?.id);
   const [showPetForm, setShowPetForm] = useState(false);
   const [editingPet, setEditingPet] = useState(null);
@@ -46,6 +47,12 @@ export default function PetsModal({ client, open, onClose }: PetsModalProps) {
   const handleDeletePet = async (id: string) => {
     if (window.confirm('Вы уверены, что хотите удалить информацию о питомце?')) {
       await deletePet(id);
+    }
+  };
+
+  const handleScheduleGrooming = (pet: any) => {
+    if (onScheduleGrooming) {
+      onScheduleGrooming(client, pet);
     }
   };
 
@@ -210,7 +217,11 @@ export default function PetsModal({ client, open, onClose }: PetsModalProps) {
                         </div>
                       </div>
 
-                      <Button size="sm" className="w-full bg-gradient-primary">
+                      <Button 
+                        size="sm" 
+                        className="w-full bg-gradient-primary"
+                        onClick={() => handleScheduleGrooming(pet)}
+                      >
                         Записать на груминг
                       </Button>
                     </CardContent>

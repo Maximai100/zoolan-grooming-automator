@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import ClientForm from './ClientForm';
 import PetsModal from './PetsModal';
 import ClientCard from './ClientCard';
+import AppointmentFormDialog from './AppointmentFormDialog';
 import { 
   Plus, Search, Filter, Users, Phone, Mail, 
   Calendar, MapPin, Edit, Trash2, Eye, Star,
@@ -36,6 +37,8 @@ const ClientsPage = () => {
   const [editingClient, setEditingClient] = useState(null);
   const [showPetsModal, setShowPetsModal] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState(null);
+  const [showAppointmentForm, setShowAppointmentForm] = useState(false);
+  const [selectedClient, setSelectedClient] = useState(null);
 
   const handleAddClient = async (clientData: any) => {
     try {
@@ -91,11 +94,8 @@ const ClientsPage = () => {
   };
 
   const handleScheduleAppointment = (client: any) => {
-    // Здесь будет логика перехода к календарю с предзаполненными данными клиента
-    toast({
-      title: 'Переход к календарю',
-      description: `Создание записи для ${client.first_name} ${client.last_name}`,
-    });
+    setSelectedClient(client);
+    setShowAppointmentForm(true);
   };
 
   // Получаем всех питомцев для подсчета и фильтрации по породам
@@ -525,6 +525,21 @@ const ClientsPage = () => {
           setShowPetsModal(false);
           setSelectedClientId(null);
         }}
+        onScheduleGrooming={(client, pet) => {
+          setSelectedClient(client);
+          setShowAppointmentForm(true);
+          setShowPetsModal(false);
+        }}
+      />
+
+      {/* Диалог записи на прием */}
+      <AppointmentFormDialog
+        open={showAppointmentForm}
+        onClose={() => {
+          setShowAppointmentForm(false);
+          setSelectedClient(null);
+        }}
+        preselectedClient={selectedClient}
       />
     </div>
   );

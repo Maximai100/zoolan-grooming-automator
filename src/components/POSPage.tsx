@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useServices } from '@/hooks/useServices';
 import { useClients } from '@/hooks/useClients';
 import { usePOS } from '@/hooks/usePOS';
+import { useDiscountCodes } from '@/hooks/useDiscountCodes';
 import { useToast } from '@/hooks/use-toast';
 
 interface CartItem {
@@ -27,12 +28,14 @@ export default function POSPage() {
   const [selectedClient, setSelectedClient] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
   const [discountCode, setDiscountCode] = useState<string>('');
+  const [appliedDiscount, setAppliedDiscount] = useState<any>(null);
   const [tipAmount, setTipAmount] = useState<number>(0);
   const [notes, setNotes] = useState<string>('');
   
   const { services } = useServices();
   const { clients } = useClients();
   const { createOrder, loading } = usePOS();
+  const { validateDiscountCode, calculateDiscount, markDiscountCodeUsed } = useDiscountCodes();
   const { toast } = useToast();
 
   const addToCart = (item: { id: string; name: string; price: number; type: 'service' | 'product' }) => {
@@ -65,8 +68,56 @@ export default function POSPage() {
   };
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const discountAmount = cart.reduce((sum, item) => sum + ((item.discount || 0) * item.quantity), 0);
-  const total = subtotal - discountAmount + tipAmount;
+  const itemDiscountAmount = cart.reduce((sum, item) => sum + ((item.discount || 0) * item.quantity), 0);
+  const promoDiscountAmount = appliedDiscount ? appliedDiscount.discountAmount : 0;
+  const totalDiscountAmount = itemDiscountAmount + promoDiscountAmount;
+  const total = subtotal - totalDiscountAmount + tipAmount;
+
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) {
+      toast({
+        title: 'Ошибка',
+        description: 'Введите промокод',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const validation = await validateDiscountCode(discountCode);
+    if (!validation.valid) {
+      toast({
+        title: 'Ошибка',
+        description: validation.error,
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const discount = calculateDiscount(validation.discountCode!, subtotal, cart);
+    if (discount.error) {
+      toast({
+        title: 'Ошибка',
+        description: discount.error,
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setAppliedDiscount({
+      code: validation.discountCode,
+      discountAmount: discount.discountAmount
+    });
+
+    toast({
+      title: 'Промокод применен',
+      description: `Скидка: ${discount.discountAmount}₽`
+    });
+  };
+
+  const handleRemoveDiscount = () => {
+    setAppliedDiscount(null);
+    setDiscountCode('');
+  };
 
   const handleCheckout = async () => {
     if (cart.length === 0) {
@@ -83,18 +134,24 @@ export default function POSPage() {
         clientId: selectedClient || null,
         items: cart,
         paymentMethod,
-        discountCode,
+        discountCode: appliedDiscount?.code?.code || '',
         tipAmount,
         notes,
         subtotal,
-        discountAmount,
+        discountAmount: totalDiscountAmount,
         total
       });
+
+      // Mark discount code as used
+      if (appliedDiscount?.code) {
+        await markDiscountCodeUsed(appliedDiscount.code.id);
+      }
 
       // Clear cart after successful order
       setCart([]);
       setSelectedClient('');
       setDiscountCode('');
+      setAppliedDiscount(null);
       setTipAmount(0);
       setNotes('');
       
@@ -249,12 +306,39 @@ export default function POSPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="discount">Промокод</Label>
-                  <Input
-                    id="discount"
-                    value={discountCode}
-                    onChange={(e) => setDiscountCode(e.target.value)}
-                    placeholder="Введите промокод"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      id="discount"
+                      value={discountCode}
+                      onChange={(e) => setDiscountCode(e.target.value)}
+                      placeholder="Введите промокод"
+                      disabled={!!appliedDiscount}
+                    />
+                    {appliedDiscount ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleRemoveDiscount}
+                        className="whitespace-nowrap"
+                      >
+                        Убрать
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleApplyDiscount}
+                        className="whitespace-nowrap"
+                      >
+                        Применить
+                      </Button>
+                    )}
+                  </div>
+                  {appliedDiscount && (
+                    <p className="text-sm text-green-600">
+                      Применен промокод: {appliedDiscount.code.code} (-{appliedDiscount.discountAmount}₽)
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -300,10 +384,10 @@ export default function POSPage() {
                     <span>Подытог:</span>
                     <span>{subtotal.toFixed(2)} ₽</span>
                   </div>
-                  {discountAmount > 0 && (
+                  {totalDiscountAmount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Скидка:</span>
-                      <span>-{discountAmount.toFixed(2)} ₽</span>
+                      <span>-{totalDiscountAmount.toFixed(2)} ₽</span>
                     </div>
                   )}
                   {tipAmount > 0 && (

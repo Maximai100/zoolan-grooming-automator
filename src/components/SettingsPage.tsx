@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function SettingsPage() {
   const { user } = useAuth();
@@ -88,42 +89,161 @@ export default function SettingsPage() {
   });
 
   const handleSaveProfile = async () => {
-    // Здесь будет логика сохранения профиля
-    toast({
-      title: 'Профиль сохранен',
-      description: 'Настройки профиля успешно обновлены'
-    });
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          first_name: profileSettings.firstName,
+          last_name: profileSettings.lastName,
+          phone: profileSettings.phone
+        })
+        .eq('id', user?.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Профиль сохранен',
+        description: 'Настройки профиля успешно обновлены'
+      });
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось сохранить настройки профиля',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleSaveSalon = async () => {
-    // Здесь будет логика сохранения настроек салона
-    toast({
-      title: 'Настройки салона сохранены',
-      description: 'Информация о салоне успешно обновлена'
-    });
+    try {
+      const { error } = await supabase
+        .from('salons')
+        .update({
+          name: salonSettings.name,
+          description: salonSettings.description,
+          address: salonSettings.address,
+          phone: salonSettings.phone,
+          email: salonSettings.email,
+          website: salonSettings.website
+        })
+        .eq('owner_id', user?.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Настройки салона сохранены',
+        description: 'Информация о салоне успешно обновлена'
+      });
+    } catch (error) {
+      console.error('Error saving salon settings:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось сохранить настройки салона',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleSaveBusiness = async () => {
-    // Здесь будет логика сохранения бизнес настроек
-    toast({
-      title: 'Бизнес настройки сохранены',
-      description: 'Настройки бизнес-процессов обновлены'
-    });
+    try {
+      // Сохраняем бизнес настройки в localStorage пока нет таблицы
+      localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
+      
+      toast({
+        title: 'Бизнес настройки сохранены',
+        description: 'Настройки бизнес-процессов обновлены'
+      });
+    } catch (error) {
+      console.error('Error saving business settings:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось сохранить бизнес настройки',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleSaveNotifications = async () => {
-    // Здесь будет логика сохранения настроек уведомлений
-    toast({
-      title: 'Настройки уведомлений сохранены',
-      description: 'Параметры уведомлений успешно обновлены'
-    });
+    try {
+      // Сохраняем настройки уведомлений в localStorage
+      localStorage.setItem('notificationSettings', JSON.stringify(notificationSettings));
+      
+      toast({
+        title: 'Настройки уведомлений сохранены',
+        description: 'Параметры уведомлений успешно обновлены'
+      });
+    } catch (error) {
+      console.error('Error saving notification settings:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось сохранить настройки уведомлений',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleSaveSecurity = async () => {
-    // Здесь будет логика сохранения настроек безопасности
+    try {
+      // Сохраняем настройки безопасности в localStorage
+      localStorage.setItem('securitySettings', JSON.stringify(securitySettings));
+      
+      toast({
+        title: 'Настройки безопасности сохранены',
+        description: 'Параметры безопасности успешно обновлены'
+      });
+    } catch (error) {
+      console.error('Error saving security settings:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось сохранить настройки безопасности',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleUploadPhoto = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        // TODO: Реализовать загрузку в Supabase Storage
+        toast({
+          title: 'В разработке',
+          description: 'Загрузка фото будет доступна в следующей версии'
+        });
+      }
+    };
+    input.click();
+  };
+
+  const handleChangePassword = () => {
     toast({
-      title: 'Настройки безопасности сохранены',
-      description: 'Параметры безопасности успешно обновлены'
+      title: 'В разработке',
+      description: 'Смена пароля будет доступна в следующей версии'
+    });
+  };
+
+  const handleEndSessions = () => {
+    toast({
+      title: 'В разработке',
+      description: 'Завершение сессий будет доступно в следующей версии'
+    });
+  };
+
+  const handleDownloadData = () => {
+    toast({
+      title: 'В разработке',
+      description: 'Скачивание данных будет доступно в следующей версии'
+    });
+  };
+
+  const handleDeleteAccount = () => {
+    toast({
+      title: 'В разработке',
+      description: 'Удаление аккаунта будет доступно в следующей версии'
     });
   };
 
@@ -178,7 +298,7 @@ export default function SettingsPage() {
                   {profileSettings.firstName?.[0] || user?.email?.[0]?.toUpperCase() || 'У'}
                 </div>
                 <div className="space-y-2">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={handleUploadPhoto}>
                     <Upload className="h-4 w-4 mr-2" />
                     Загрузить фото
                   </Button>
@@ -692,10 +812,10 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Действия</h3>
                 <div className="flex flex-col gap-3">
-                  <Button variant="outline">Изменить пароль</Button>
-                  <Button variant="outline">Завершить все сессии</Button>
-                  <Button variant="outline">Скачать данные аккаунта</Button>
-                  <Button variant="destructive">Удалить аккаунт</Button>
+                  <Button variant="outline" onClick={handleChangePassword}>Изменить пароль</Button>
+                  <Button variant="outline" onClick={handleEndSessions}>Завершить все сессии</Button>
+                  <Button variant="outline" onClick={handleDownloadData}>Скачать данные аккаунта</Button>
+                  <Button variant="destructive" onClick={handleDeleteAccount}>Удалить аккаунт</Button>
                 </div>
               </div>
 
