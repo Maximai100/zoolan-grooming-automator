@@ -126,6 +126,101 @@ export type Database = {
         }
         Relationships: []
       }
+      api_keys: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          key_hash: string
+          last_used_at: string | null
+          name: string
+          permissions: Json | null
+          salon_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_hash: string
+          last_used_at?: string | null
+          name: string
+          permissions?: Json | null
+          salon_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_hash?: string
+          last_used_at?: string | null
+          name?: string
+          permissions?: Json | null
+          salon_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      api_logs: {
+        Row: {
+          api_key_id: string | null
+          created_at: string | null
+          endpoint: string
+          execution_time_ms: number | null
+          id: string
+          ip_address: unknown | null
+          method: string
+          request_data: Json | null
+          response_data: Json | null
+          salon_id: string
+          status_code: number | null
+          user_agent: string | null
+        }
+        Insert: {
+          api_key_id?: string | null
+          created_at?: string | null
+          endpoint: string
+          execution_time_ms?: number | null
+          id?: string
+          ip_address?: unknown | null
+          method: string
+          request_data?: Json | null
+          response_data?: Json | null
+          salon_id: string
+          status_code?: number | null
+          user_agent?: string | null
+        }
+        Update: {
+          api_key_id?: string | null
+          created_at?: string | null
+          endpoint?: string
+          execution_time_ms?: number | null
+          id?: string
+          ip_address?: unknown | null
+          method?: string
+          request_data?: Json | null
+          response_data?: Json | null
+          salon_id?: string
+          status_code?: number | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_logs_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           client_id: string
@@ -728,6 +823,42 @@ export type Database = {
           valid_from?: string | null
           valid_until?: string | null
           value?: number
+        }
+        Relationships: []
+      }
+      feature_flags: {
+        Row: {
+          conditions: Json | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_enabled: boolean | null
+          name: string
+          rollout_percentage: number | null
+          target_salons: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          conditions?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          name: string
+          rollout_percentage?: number | null
+          target_salons?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          conditions?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          name?: string
+          rollout_percentage?: number | null
+          target_salons?: string[] | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2049,6 +2180,36 @@ export type Database = {
         }
         Relationships: []
       }
+      salon_feature_flags: {
+        Row: {
+          created_at: string | null
+          enabled_by: string | null
+          feature_name: string
+          id: string
+          is_enabled: boolean | null
+          salon_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          enabled_by?: string | null
+          feature_name: string
+          id?: string
+          is_enabled?: boolean | null
+          salon_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          enabled_by?: string | null
+          feature_name?: string
+          id?: string
+          is_enabled?: boolean | null
+          salon_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       salon_subscriptions: {
         Row: {
           auto_renew: boolean | null
@@ -2114,7 +2275,9 @@ export type Database = {
       salons: {
         Row: {
           address: string | null
+          branding: Json | null
           created_at: string | null
+          currency: string | null
           description: string | null
           email: string | null
           id: string
@@ -2122,14 +2285,18 @@ export type Database = {
           logo_url: string | null
           name: string
           owner_id: string | null
+          parent_salon_id: string | null
           phone: string | null
           settings: Json | null
+          timezone: string | null
           updated_at: string | null
           website: string | null
         }
         Insert: {
           address?: string | null
+          branding?: Json | null
           created_at?: string | null
+          currency?: string | null
           description?: string | null
           email?: string | null
           id?: string
@@ -2137,14 +2304,18 @@ export type Database = {
           logo_url?: string | null
           name: string
           owner_id?: string | null
+          parent_salon_id?: string | null
           phone?: string | null
           settings?: Json | null
+          timezone?: string | null
           updated_at?: string | null
           website?: string | null
         }
         Update: {
           address?: string | null
+          branding?: Json | null
           created_at?: string | null
+          currency?: string | null
           description?: string | null
           email?: string | null
           id?: string
@@ -2152,8 +2323,10 @@ export type Database = {
           logo_url?: string | null
           name?: string
           owner_id?: string | null
+          parent_salon_id?: string | null
           phone?: string | null
           settings?: Json | null
+          timezone?: string | null
           updated_at?: string | null
           website?: string | null
         }
@@ -2163,6 +2336,13 @@ export type Database = {
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salons_parent_salon_id_fkey"
+            columns: ["parent_salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
             referencedColumns: ["id"]
           },
         ]

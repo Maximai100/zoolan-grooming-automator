@@ -23,6 +23,8 @@ import InventoryPage from "./components/InventoryPage";
 import SubscriptionPage from "./components/SubscriptionPage";
 import DataExportPage from "./components/DataExportPage";
 import HelpCenterPage from "./components/HelpCenterPage";
+import MultiLocationPage from "./components/MultiLocationPage";
+import APIManagementPage from "./components/APIManagementPage";
 import SecurityPage from "./components/SecurityPage";
 import MessengersPage from "./components/MessengersPage";
 
@@ -52,6 +54,8 @@ const App = () => (
               <Route path="subscription" element={<SubscriptionPage />} />
               <Route path="exports" element={<DataExportPage />} />
               <Route path="help" element={<HelpCenterPage />} />
+              <Route path="locations" element={<MultiLocationPage />} />
+              <Route path="api" element={<APIManagementPage />} />
               <Route path="security" element={<SecurityPage />} />
               <Route path="messengers" element={<MessengersPage />} />
               <Route path="settings" element={<SettingsPage />} />
