@@ -40,6 +40,7 @@ const navigation = [
   { name: 'Услуги', href: '/services', icon: Wrench },
   { name: 'Инвентарь', href: '/inventory', icon: Package },
   { name: 'Лояльность', href: '/loyalty', icon: Gift },
+  { name: 'Настройки', href: '/settings', icon: Settings },
   { name: 'Подписка', href: '/subscription', icon: CreditCard },
   { name: 'Экспорт данных', href: '/exports', icon: BarChart3 },
   { name: 'Мультилокации', href: '/locations', icon: Building2 },
@@ -47,7 +48,6 @@ const navigation = [
   { name: 'Помощь', href: '/help', icon: HelpCircle },
   { name: 'Безопасность', href: '/security', icon: Shield },
   { name: 'Мессенджеры', href: '/messengers', icon: MessageSquare },
-  { name: 'Настройки', href: '/settings', icon: Settings },
 ];
 
 export default function AppLayout() {
