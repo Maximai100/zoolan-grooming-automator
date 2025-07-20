@@ -1,9 +1,11 @@
 
 import { useState, useEffect } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
+import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import moment from 'moment';
 import 'moment/locale/ru';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,17 +13,21 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useAppointments } from '../hooks/useAppointments';
 import { useToast } from '@/hooks/use-toast';
 import AppointmentForm from './AppointmentForm';
+import OnlineBookingWidget from './OnlineBookingWidget';
+import DepositManagement from './DepositManagement';
 import { 
   Plus, Calendar as CalendarIcon, Clock, Users, 
   CheckCircle, XCircle, AlertCircle, RefreshCw,
-  Filter, Eye, Edit, Trash2
+  Filter, Eye, Edit, Trash2, Globe, CreditCard
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { supabase } from '@/integrations/supabase/client';
 
 // Настройка локализации
 moment.locale('ru');
 const localizer = momentLocalizer(moment);
+const DragAndDropCalendar = withDragAndDrop(Calendar);
 
 const CalendarPage = () => {
   const { appointments, loading, addAppointment, updateAppointment, deleteAppointment, refetch } = useAppointments();
@@ -33,6 +39,9 @@ const CalendarPage = () => {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
+  const [showOnlineBooking, setShowOnlineBooking] = useState(false);
+  const [showDepositManagement, setShowDepositManagement] = useState(false);
+  const [userSalonId, setUserSalonId] = useState<string | null>(null);
 
   // Преобразование записей для календаря
   const calendarEvents = appointments.map(appointment => ({
@@ -52,6 +61,51 @@ const CalendarPage = () => {
   const handleSelectEvent = (event) => {
     setSelectedAppointment(event.resource);
     setShowAppointmentDetails(true);
+  };
+
+  // Drag & Drop обработчики
+  const handleEventDrop = async ({ event, start, end }) => {
+    try {
+      const newDate = moment(start).format('YYYY-MM-DD');
+      const newTime = moment(start).format('HH:mm');
+      
+      await updateAppointment(event.resource.id, {
+        scheduled_date: newDate,
+        scheduled_time: newTime
+      });
+      
+      toast({
+        title: 'Успешно',
+        description: 'Запись перемещена',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось переместить запись',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleEventResize = async ({ event, start, end }) => {
+    try {
+      const duration = moment(end).diff(moment(start), 'minutes');
+      
+      await updateAppointment(event.resource.id, {
+        duration_minutes: duration
+      });
+      
+      toast({
+        title: 'Успешно',
+        description: 'Длительность записи изменена',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось изменить длительность',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleAddAppointment = async (appointmentData) => {
@@ -174,6 +228,20 @@ const CalendarPage = () => {
             <RefreshCw className="h-4 w-4 mr-2" />
             Обновить
           </Button>
+          <Button
+            onClick={() => setShowDepositManagement(true)}
+            variant="outline"
+          >
+            <CreditCard className="h-4 w-4 mr-2" />
+            Депозиты
+          </Button>
+          <Button
+            onClick={() => setShowOnlineBooking(true)}
+            variant="outline"
+          >
+            <Globe className="h-4 w-4 mr-2" />
+            Онлайн-запись
+          </Button>
           <Button 
             onClick={() => {
               setSelectedSlot(null);
@@ -244,7 +312,7 @@ const CalendarPage = () => {
       <Card>
         <CardContent className="p-6">
           <div style={{ height: 600 }}>
-            <Calendar
+            <DragAndDropCalendar
               localizer={localizer}
               events={calendarEvents}
               startAccessor="start"
@@ -255,27 +323,65 @@ const CalendarPage = () => {
               onNavigate={setDate}
               onSelectSlot={handleSelectSlot}
               onSelectEvent={handleSelectEvent}
+              onEventDrop={handleEventDrop}
+              onEventResize={handleEventResize}
               selectable
+              resizable
               popup
+              dragFromOutsideItem={() => null}
               views={['month', 'week', 'day']}
+              step={30}
+              timeslots={2}
+              min={new Date(2024, 0, 1, 9, 0)} // 9:00
+              max={new Date(2024, 0, 1, 18, 0)} // 18:00
               messages={{
                 next: 'Следующий',
                 previous: 'Предыдущий',
                 today: 'Сегодня',
                 month: 'Месяц',
                 week: 'Неделя',
-                day: 'День'
+                day: 'День',
+                agenda: 'Повестка',
+                allDay: 'Весь день',
+                noEventsInRange: 'Нет записей в этом диапазоне',
+                showMore: (total) => `+${total} еще`
               }}
-              eventPropGetter={(event) => ({
-                style: {
-                  backgroundColor: event.resource.status === 'completed' ? '#10b981' :
-                                  event.resource.status === 'cancelled' ? '#ef4444' :
-                                  event.resource.status === 'confirmed' ? '#3b82f6' : '#f59e0b',
-                  borderRadius: '4px',
-                  border: 'none',
-                  color: 'white'
-                }
-              })}
+              eventPropGetter={(event) => {
+                const colors = {
+                  completed: { backgroundColor: '#10b981', border: '#059669' },
+                  cancelled: { backgroundColor: '#ef4444', border: '#dc2626' },
+                  no_show: { backgroundColor: '#6b7280', border: '#4b5563' },
+                  confirmed: { backgroundColor: '#3b82f6', border: '#2563eb' },
+                  in_progress: { backgroundColor: '#f59e0b', border: '#d97706' }
+                };
+                
+                const color = colors[event.resource.status] || colors.confirmed;
+                
+                return {
+                  style: {
+                    ...color,
+                    borderRadius: '6px',
+                    border: `2px solid ${color.border}`,
+                    color: 'white',
+                    fontSize: '12px',
+                    padding: '2px 4px',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  }
+                };
+              }}
+              dayPropGetter={(date) => {
+                const today = new Date();
+                const isToday = date.toDateString() === today.toDateString();
+                const isPast = date < today;
+                
+                return {
+                  style: {
+                    backgroundColor: isToday ? 'hsl(var(--primary) / 0.05)' : 
+                                   isPast ? 'hsl(var(--muted) / 0.3)' : 'transparent'
+                  }
+                };
+              }}
             />
           </div>
         </CardContent>
@@ -356,6 +462,37 @@ const CalendarPage = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог онлайн-записи */}
+      <Dialog open={showOnlineBooking} onOpenChange={setShowOnlineBooking}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Виджет онлайн-записи</DialogTitle>
+            <DialogDescription>
+              Предварительный просмотр виджета для клиентов
+            </DialogDescription>
+          </DialogHeader>
+          {userSalonId && (
+            <OnlineBookingWidget salonId={userSalonId} embedded />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог управления депозитами */}
+      <Dialog open={showDepositManagement} onOpenChange={setShowDepositManagement}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Управление депозитами</DialogTitle>
+            <DialogDescription>
+              Отслеживание и обработка предоплат
+            </DialogDescription>
+          </DialogHeader>
+          <DepositManagement 
+            appointments={appointments}
+            onUpdateAppointment={updateAppointment}
+          />
         </DialogContent>
       </Dialog>
     </div>
