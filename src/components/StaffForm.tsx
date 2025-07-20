@@ -69,19 +69,16 @@ const StaffForm = ({ open, onClose, onStaffAdded }: StaffFormProps) => {
         throw new Error('Не удалось создать пользователя');
       }
       
-      // Создаем профиль сотрудника напрямую
+      // Профиль автоматически создается через триггер handle_new_user()
+      // Нужно только обновить его с дополнительными данными
       const { error: profileError } = await supabase
         .from('profiles')
-        .insert([{
-          id: newUser.user.id,
-          email: formData.email,
-          first_name: formData.first_name,
-          last_name: formData.last_name,
+        .update({
           phone: formData.phone,
           role: formData.role,
-          salon_id: profile.salon_id,
           is_active: true
-        }]);
+        })
+        .eq('id', newUser.user.id);
       
       if (profileError) throw profileError;
 
