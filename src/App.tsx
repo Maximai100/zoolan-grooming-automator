@@ -18,6 +18,7 @@ import AnalyticsPage from "./components/AnalyticsPage";
 import StaffPage from "./components/StaffPage";
 import ServicesPage from "./components/ServicesPage";
 import SettingsPage from "./components/SettingsPage";
+import LoyaltyPage from "./components/LoyaltyPage";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="staff" element={<StaffPage />} />
               <Route path="services" element={<ServicesPage />} />
+              <Route path="loyalty" element={<LoyaltyPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
           </Route>
