@@ -14,6 +14,7 @@ import {
   Wrench,
   Gift,
   ShoppingCart,
+  Package,
   Menu,
   X
 } from 'lucide-react';
@@ -31,6 +32,7 @@ const navigation = [
   { name: 'Аналитика', href: '/analytics', icon: BarChart3 },
   { name: 'Персонал', href: '/staff', icon: UserCog },
   { name: 'Услуги', href: '/services', icon: Wrench },
+  { name: 'Инвентарь', href: '/inventory', icon: Package },
   { name: 'Лояльность', href: '/loyalty', icon: Gift },
   { name: 'Настройки', href: '/settings', icon: Settings },
 ];
