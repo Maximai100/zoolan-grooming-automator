@@ -1,118 +1,134 @@
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Plus, Filter, Users, Star, TrendingUp, AlertCircle } from 'lucide-react';
-import { useClients } from '@/hooks/useClients';
-import ClientCard from './ClientCard';
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useClients } from '../hooks/useClients';
+import { useToast } from '@/hooks/use-toast';
 import ClientForm from './ClientForm';
 import PetsModal from './PetsModal';
+import { 
+  Plus, Search, Filter, Users, Phone, Mail, 
+  Calendar, MapPin, Edit, Trash2, Eye, Star,
+  UserPlus, Tag
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
 
-export default function ClientsPage() {
-  const { clients, loading, searchTerm, setSearchTerm, addClient, updateClient, deleteClient } = useClients();
-  const [showForm, setShowForm] = useState(false);
+const ClientsPage = () => {
+  const { clients, loading, addClient, updateClient, deleteClient, refetch } = useClients();
+  const { toast } = useToast();
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [tagFilter, setTagFilter] = useState("all");
+  const [showClientForm, setShowClientForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
-  const [selectedClient, setSelectedClient] = useState(null);
   const [showPetsModal, setShowPetsModal] = useState(false);
-  const [tagFilter, setTagFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
+  const [selectedClientId, setSelectedClientId] = useState(null);
 
-  // Получаем уникальные теги для фильтра
-  const allTags = Array.from(new Set(clients.flatMap(client => client.tags)));
+  const handleAddClient = async (clientData: any) => {
+    try {
+      await addClient(clientData);
+      setShowClientForm(false);
+      toast({
+        title: 'Успешно',
+        description: 'Клиент добавлен',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  };
 
-  // Фильтрация и сортировка
-  const filteredAndSortedClients = clients
-    .filter(client => {
-      if (tagFilter && tagFilter !== 'all' && !client.tags?.includes(tagFilter)) return false;
-      return true;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case 'oldest':
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        case 'name':
-          return a.first_name.localeCompare(b.first_name);
-        case 'visits':
-          return b.total_visits - a.total_visits;
-        case 'spent':
-          return b.total_spent - a.total_spent;
-        default:
-          return 0;
+  const handleUpdateClient = async (clientData: any) => {
+    try {
+      await updateClient(editingClient.id, clientData);
+      setEditingClient(null);
+      setShowClientForm(false);
+      toast({
+        title: 'Успешно',
+        description: 'Данные клиента обновлены',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDeleteClient = async (clientId: string) => {
+    if (confirm('Вы уверены, что хотите удалить этого клиента?')) {
+      try {
+        await deleteClient(clientId);
+        toast({
+          title: 'Успешно',
+          description: 'Клиент удален',
+        });
+      } catch (error: any) {
+        toast({
+          title: 'Ошибка',
+          description: error.message,
+          variant: 'destructive'
+        });
       }
-    });
-
-  const handleAddClient = () => {
-    setEditingClient(null);
-    setShowForm(true);
-  };
-
-  const handleEditClient = (client) => {
-    setEditingClient(client);
-    setShowForm(true);
-  };
-
-  const handleSubmit = async (formData) => {
-    if (editingClient) {
-      await updateClient(editingClient.id, formData);
-    } else {
-      await addClient(formData);
-    }
-    setShowForm(false);
-    setEditingClient(null);
-  };
-
-  const handleViewPets = (client) => {
-    setSelectedClient(client);
-    setShowPetsModal(true);
-  };
-
-  const handleDeleteClient = async (id: string) => {
-    if (window.confirm('Вы уверены, что хотите удалить этого клиента?')) {
-      await deleteClient(id);
     }
   };
 
-  // Статистика
-  const stats = {
+  const filteredClients = clients.filter(client => {
+    if (statusFilter !== 'all' && (statusFilter === 'vip' ? !client.is_vip : client.is_vip)) return false;
+    if (tagFilter !== 'all' && !client.tags?.includes(tagFilter)) return false;
+    if (searchTerm && !client.first_name.toLowerCase().includes(searchTerm.toLowerCase()) && 
+        !client.last_name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !client.phone.includes(searchTerm) && 
+        !client.email?.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    return true;
+  });
+
+  const uniqueTags = [...new Set(clients.flatMap(client => client.tags || []))];
+
+  const clientStats = {
     total: clients.length,
     vip: clients.filter(c => c.is_vip).length,
-    newThisMonth: clients.filter(c => {
-      const created = new Date(c.created_at);
-      const now = new Date();
-      return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+    new: clients.filter(c => {
+      const createdDate = new Date(c.created_at);
+      const monthAgo = new Date();
+      monthAgo.setMonth(monthAgo.getMonth() - 1);
+      return createdDate > monthAgo;
     }).length,
-    totalRevenue: clients.reduce((sum, c) => sum + Number(c.total_spent), 0)
+    active: clients.filter(c => c.last_visit_date).length
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <div className="text-lg text-muted-foreground">Загрузка клиентов...</div>
-        </div>
+        <div className="text-lg text-muted-foreground">Загрузка клиентов...</div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-
-      {/* Заголовок и статистика */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">База клиентов</h1>
-          <p className="text-muted-foreground">Управление клиентами и их питомцами</p>
+          <h1 className="text-3xl font-bold">Клиенты</h1>
+          <p className="text-muted-foreground">Управление базой клиентов и их питомцами</p>
         </div>
-        
-        <Button onClick={handleAddClient} className="bg-gradient-primary">
-          <Plus className="h-4 w-4 mr-2" />
-          Новый клиент
+        <Button 
+          onClick={() => setShowClientForm(true)}
+          className="bg-gradient-primary text-white shadow-soft hover:shadow-glow"
+          size="lg"
+        >
+          <UserPlus className="h-4 w-4 mr-2" />
+          Добавить клиента
         </Button>
       </div>
 
@@ -123,7 +139,7 @@ export default function ClientsPage() {
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
               <div>
-                <div className="text-2xl font-bold">{stats.total}</div>
+                <div className="text-2xl font-bold">{clientStats.total}</div>
                 <div className="text-sm text-muted-foreground">Всего клиентов</div>
               </div>
             </div>
@@ -135,8 +151,8 @@ export default function ClientsPage() {
             <div className="flex items-center gap-2">
               <Star className="h-5 w-5 text-yellow-500" />
               <div>
-                <div className="text-2xl font-bold">{stats.vip}</div>
-                <div className="text-sm text-muted-foreground">VIP клиентов</div>
+                <div className="text-2xl font-bold">{clientStats.vip}</div>
+                <div className="text-sm text-muted-foreground">VIP клиенты</div>
               </div>
             </div>
           </CardContent>
@@ -145,10 +161,10 @@ export default function ClientsPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-500" />
+              <UserPlus className="h-5 w-5 text-green-500" />
               <div>
-                <div className="text-2xl font-bold">{stats.newThisMonth}</div>
-                <div className="text-sm text-muted-foreground">Новых в месяце</div>
+                <div className="text-2xl font-bold">{clientStats.new}</div>
+                <div className="text-sm text-muted-foreground">Новые (месяц)</div>
               </div>
             </div>
           </CardContent>
@@ -157,12 +173,10 @@ export default function ClientsPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <div className="h-5 w-5 rounded-full bg-gradient-primary flex items-center justify-center">
-                <span className="text-white text-xs">₽</span>
-              </div>
+              <Calendar className="h-5 w-5 text-blue-500" />
               <div>
-                <div className="text-2xl font-bold">{stats.totalRevenue.toLocaleString()}</div>
-                <div className="text-sm text-muted-foreground">Общая выручка</div>
+                <div className="text-2xl font-bold">{clientStats.active}</div>
+                <div className="text-sm text-muted-foreground">Активные</div>
               </div>
             </div>
           </CardContent>
@@ -174,141 +188,198 @@ export default function ClientsPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск по имени, телефону, email или тегам..."
+            placeholder="Поиск по имени, телефону или email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
-
         <div className="flex gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Статус" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все клиенты</SelectItem>
+              <SelectItem value="vip">VIP</SelectItem>
+              <SelectItem value="regular">Обычные</SelectItem>
+            </SelectContent>
+          </Select>
+          
           <Select value={tagFilter} onValueChange={setTagFilter}>
             <SelectTrigger className="w-40">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="По тегам" />
+              <SelectValue placeholder="Теги" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Все теги</SelectItem>
-              {allTags.map(tag => (
+              {uniqueTags.map(tag => (
                 <SelectItem key={tag} value={tag}>{tag}</SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Сортировка" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Новые</SelectItem>
-              <SelectItem value="oldest">Старые</SelectItem>
-              <SelectItem value="name">По имени</SelectItem>
-              <SelectItem value="visits">По визитам</SelectItem>
-              <SelectItem value="spent">По тратам</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
-      {/* Активные фильтры */}
-      {(tagFilter && tagFilter !== 'all' || searchTerm) && (
-        <div className="flex gap-2 flex-wrap">
-          {tagFilter && tagFilter !== 'all' && (
-            <Badge variant="secondary" className="px-3 py-1">
-              Тег: {tagFilter}
-              <button
-                onClick={() => setTagFilter('all')}
-                className="ml-2 hover:bg-destructive/20 rounded-full p-0.5"
-              >
-                <span className="sr-only">Удалить фильтр</span>
-                ×
-              </button>
-            </Badge>
-          )}
-          {searchTerm && (
-            <Badge variant="secondary" className="px-3 py-1">
-              Поиск: "{searchTerm}"
-              <button
-                onClick={() => setSearchTerm('')}
-                className="ml-2 hover:bg-destructive/20 rounded-full p-0.5"
-              >
-                <span className="sr-only">Очистить поиск</span>
-                ×
-              </button>
-            </Badge>
-          )}
-        </div>
-      )}
-
       {/* Список клиентов */}
-      {filteredAndSortedClients.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">
-              {searchTerm || tagFilter ? 'Клиенты не найдены' : 'Пока нет клиентов'}
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              {searchTerm || tagFilter 
-                ? 'Попробуйте изменить параметры поиска'
-                : 'Добавьте первого клиента для начала работы'
-              }
-            </p>
-            {!searchTerm && !tagFilter && (
-              <Button onClick={handleAddClient} className="bg-gradient-primary">
-                <Plus className="h-4 w-4 mr-2" />
-                Добавить клиента
-              </Button>
-            )}
-            
-            {/* Дополнительная информация для диагностики */}
-            <div className="mt-6 p-4 bg-muted/50 rounded text-sm text-left">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="h-4 w-4" />
-                <span className="font-medium">Информация для диагностики:</span>
-              </div>
-              <div className="space-y-1 text-muted-foreground">
-                <div>• Всего клиентов в базе: {clients.length}</div>
-                <div>• После фильтрации: {filteredAndSortedClients.length}</div>
-                <div>• Поисковый запрос: "{searchTerm}"</div>
-                <div>• Фильтр по тегам: "{tagFilter}"</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredAndSortedClients.map((client) => (
-            <ClientCard
-              key={client.id}
-              client={client}
-              onEdit={handleEditClient}
-              onDelete={handleDeleteClient}
-              onViewPets={handleViewPets}
-            />
-          ))}
-        </div>
-      )}
+      <div className="grid gap-4">
+        {filteredClients.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">Нет клиентов</h3>
+              <p className="text-muted-foreground mb-4">
+                {searchTerm || statusFilter !== 'all' || tagFilter !== 'all' 
+                  ? 'Попробуйте изменить параметры поиска'
+                  : 'Добавьте первого клиента в базу'
+                }
+              </p>
+              {!searchTerm && statusFilter === 'all' && tagFilter === 'all' && (
+                <Button 
+                  onClick={() => setShowClientForm(true)}
+                  className="bg-gradient-primary text-white"
+                >
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Добавить клиента
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          filteredClients.map((client) => (
+            <Card key={client.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <h3 className="text-lg font-semibold">
+                        {client.first_name} {client.last_name}
+                      </h3>
+                      {client.is_vip && (
+                        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                          <Star className="h-3 w-3 mr-1" />
+                          VIP
+                        </Badge>
+                      )}
+                      {client.tags?.map(tag => (
+                        <Badge key={tag} variant="secondary">
+                          <Tag className="h-3 w-3 mr-1" />
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center space-x-2">
+                        <Phone className="h-4 w-4" />
+                        <span>{client.phone}</span>
+                      </div>
+                      {client.email && (
+                        <div className="flex items-center space-x-2">
+                          <Mail className="h-4 w-4" />
+                          <span>{client.email}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="h-4 w-4" />
+                        <span>Визитов: {client.total_visits || 0}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span>Потрачено: ₽{client.total_spent || 0}</span>
+                      </div>
+                    </div>
+                    
+                    {client.address && (
+                      <div className="flex items-center space-x-2 mt-2 text-sm text-muted-foreground">
+                        <MapPin className="h-4 w-4" />
+                        <span>{client.address}</span>
+                      </div>
+                    )}
+                    
+                    {client.last_visit_date && (
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        Последний визит: {format(new Date(client.last_visit_date), 'dd.MM.yyyy', { locale: ru })}
+                      </div>
+                    )}
+                    
+                    {client.notes && (
+                      <div className="mt-2 text-sm bg-muted p-2 rounded">
+                        <strong>Заметки:</strong> {client.notes}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex space-x-2 ml-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedClientId(client.id);
+                        setShowPetsModal(true);
+                      }}
+                      className="bg-card text-foreground border-input hover:bg-accent"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEditingClient(client);
+                        setShowClientForm(true);
+                      }}
+                      className="bg-card text-foreground border-input hover:bg-accent"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteClient(client.id)}
+                      className="bg-card text-foreground border-input hover:bg-destructive hover:text-destructive-foreground"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
 
-      {/* Модальные окна */}
-      <ClientForm
-        client={editingClient}
-        open={showForm}
-        onClose={() => {
-          setShowForm(false);
-          setEditingClient(null);
-        }}
-        onSubmit={handleSubmit}
-      />
+      {/* Диалог добавления/редактирования клиента */}
+      <Dialog open={showClientForm} onOpenChange={setShowClientForm}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingClient ? 'Редактировать клиента' : 'Добавить клиента'}
+            </DialogTitle>
+            <DialogDescription>
+              Заполните информацию о клиенте
+            </DialogDescription>
+          </DialogHeader>
+          <ClientForm
+            client={editingClient}
+            onSubmit={editingClient ? handleUpdateClient : handleAddClient}
+            onCancel={() => {
+              setShowClientForm(false);
+              setEditingClient(null);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
 
+      {/* Модальное окно питомцев */}
       <PetsModal
-        client={selectedClient}
-        open={showPetsModal}
+        isOpen={showPetsModal}
         onClose={() => {
           setShowPetsModal(false);
-          setSelectedClient(null);
+          setSelectedClientId(null);
         }}
+        clientId={selectedClientId}
       />
     </div>
   );
-}
+};
+
+export default ClientsPage;

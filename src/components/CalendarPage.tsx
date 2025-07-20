@@ -1,421 +1,252 @@
-import { useState, useCallback, useEffect } from 'react';
-import { Calendar, momentLocalizer, Views, View } from 'react-big-calendar';
-import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
+
+import { useState, useEffect } from 'react';
+import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
+import 'moment/locale/ru';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Clock, User, Scissors, Sparkles, TrendingUp } from 'lucide-react';
-import { useAppointments } from '@/hooks/useAppointments';
-import { useClients } from '@/hooks/useClients';
-import { useServices } from '@/hooks/useServices';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useAppointments } from '../hooks/useAppointments';
 import { useToast } from '@/hooks/use-toast';
 import AppointmentForm from './AppointmentForm';
+import { 
+  Plus, Calendar as CalendarIcon, Clock, Users, 
+  CheckCircle, XCircle, AlertCircle, RefreshCw,
+  Filter, Eye, Edit, Trash2
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
 
-// Настройка локализации для календаря
+// Настройка локализации
 moment.locale('ru');
 const localizer = momentLocalizer(moment);
-const DragAndDropCalendar = withDragAndDrop(Calendar);
 
-interface CalendarEvent {
-  id: string;
-  title: string;
-  start: Date;
-  end: Date;
-  resource: {
-    type: 'appointment';
-    appointmentId: string;
-    clientName: string;
-    petName: string;
-    serviceName: string;
-    status: string;
-    price: number;
-    duration: number;
-  };
-}
-
-export default function CalendarPage() {
-  const [view, setView] = useState<View>(Views.WEEK);
-  const [date, setDate] = useState(new Date());
-  const [showForm, setShowForm] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState<any>(null);
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-
-  const { appointments, updateAppointment } = useAppointments();
-  const { clients } = useClients();
-  const { services } = useServices();
+const CalendarPage = () => {
+  const { appointments, loading, addAppointment, updateAppointment, deleteAppointment, refetch } = useAppointments();
   const { toast } = useToast();
+  
+  const [view, setView] = useState('week');
+  const [date, setDate] = useState(new Date());
+  const [showAppointmentForm, setShowAppointmentForm] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
 
-  // Преобразование записей в события календаря
-  useEffect(() => {
-    if (appointments && clients && services) {
-      const calendarEvents: CalendarEvent[] = appointments.map(appointment => {
-        const client = clients.find(c => c.id === appointment.client_id);
-        const service = services.find(s => s.id === appointment.service_id);
-        
-        const startDateTime = new Date(`${appointment.scheduled_date}T${appointment.scheduled_time}`);
-        const endDateTime = new Date(startDateTime.getTime() + (appointment.duration_minutes * 60000));
+  // Преобразование записей для календаря
+  const calendarEvents = appointments.map(appointment => ({
+    ...appointment,
+    title: `${appointment.clients?.first_name} ${appointment.clients?.last_name} - ${appointment.services?.name}`,
+    start: new Date(`${appointment.scheduled_date}T${appointment.scheduled_time}`),
+    end: new Date(new Date(`${appointment.scheduled_date}T${appointment.scheduled_time}`).getTime() + appointment.duration_minutes * 60000),
+    resource: appointment
+  }));
 
-        return {
-          id: appointment.id,
-          title: `${client?.first_name || 'Клиент'} - ${service?.name || 'Услуга'}`,
-          start: startDateTime,
-          end: endDateTime,
-          resource: {
-            type: 'appointment',
-            appointmentId: appointment.id,
-            clientName: `${client?.first_name || ''} ${client?.last_name || ''}`.trim(),
-            petName: appointment.pet_id || 'Питомец',
-            serviceName: service?.name || 'Услуга',
-            status: appointment.status,
-            price: appointment.price,
-            duration: appointment.duration_minutes
-          }
-        };
-      });
-      setEvents(calendarEvents);
-    }
-  }, [appointments, clients, services]);
+  const handleSelectSlot = ({ start, end }) => {
+    setSelectedSlot({ start, end });
+    setSelectedAppointment(null);
+    setShowAppointmentForm(true);
+  };
 
-  // Обработка выбора слота времени
-  const handleSelectSlot = useCallback((slotInfo: any) => {
-    setSelectedSlot(slotInfo);
-    setShowForm(true);
-  }, []);
+  const handleSelectEvent = (event) => {
+    setSelectedAppointment(event.resource);
+    setShowAppointmentDetails(true);
+  };
 
-  // Обработка выбора события
-  const handleSelectEvent = useCallback((event: CalendarEvent) => {
-    setSelectedEvent(event);
-  }, []);
-
-  // Обработка перетаскивания события
-  const handleEventDrop = useCallback(async ({ event, start, end }: any) => {
+  const handleAddAppointment = async (appointmentData) => {
     try {
-      const newDate = moment(start).format('YYYY-MM-DD');
-      const newTime = moment(start).format('HH:mm:ss');
-      const newDuration = Math.round((end.getTime() - start.getTime()) / 60000);
-
-      await updateAppointment(event.resource.appointmentId, {
-        scheduled_date: newDate,
-        scheduled_time: newTime,
-        duration_minutes: newDuration
-      });
-
+      await addAppointment(appointmentData);
+      setShowAppointmentForm(false);
+      setSelectedSlot(null);
       toast({
-        title: 'Запись перенесена',
-        description: `Новое время: ${moment(start).format('DD.MM.YYYY HH:mm')}`
+        title: 'Успешно',
+        description: 'Запись добавлена',
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Ошибка',
-        description: 'Не удалось перенести запись',
+        description: error.message,
         variant: 'destructive'
       });
     }
-  }, [updateAppointment, toast]);
+  };
 
-  // Изменение размера события
-  const handleEventResize = useCallback(async ({ event, start, end }: any) => {
+  const handleUpdateAppointment = async (appointmentData) => {
     try {
-      const newDuration = Math.round((end.getTime() - start.getTime()) / 60000);
-
-      await updateAppointment(event.resource.appointmentId, {
-        duration_minutes: newDuration
-      });
-
+      await updateAppointment(selectedAppointment.id, appointmentData);
+      setShowAppointmentForm(false);
+      setSelectedAppointment(null);
       toast({
-        title: 'Длительность изменена',
-        description: `Новая длительность: ${newDuration} мин`
+        title: 'Успешно',
+        description: 'Запись обновлена',
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Ошибка',
-        description: 'Не удалось изменить длительность',
+        description: error.message,
         variant: 'destructive'
       });
     }
-  }, [updateAppointment, toast]);
+  };
 
-  // Определение цвета события по статусу
-  const eventStyleGetter = (event: CalendarEvent) => {
-    const { status } = event.resource;
-    let backgroundColor = '#3174ad';
-    
+  const handleDeleteAppointment = async () => {
+    if (confirm('Вы уверены, что хотите удалить эту запись?')) {
+      try {
+        await deleteAppointment(selectedAppointment.id);
+        setShowAppointmentDetails(false);
+        setSelectedAppointment(null);
+        toast({
+          title: 'Успешно',
+          description: 'Запись удалена',
+        });
+      } catch (error: any) {
+        toast({
+          title: 'Ошибка',
+          description: error.message,
+          variant: 'destructive'
+        });
+      }
+    }
+  };
+
+  const getStatusColor = (status) => {
     switch (status) {
-      case 'scheduled':
-        backgroundColor = '#3b82f6'; // blue
-        break;
-      case 'confirmed':
-        backgroundColor = '#10b981'; // green
-        break;
-      case 'in_progress':
-        backgroundColor = '#f59e0b'; // yellow
-        break;
-      case 'completed':
-        backgroundColor = '#8b5cf6'; // purple
-        break;
-      case 'cancelled':
-        backgroundColor = '#ef4444'; // red
-        break;
-      case 'no_show':
-        backgroundColor = '#6b7280'; // gray
-        break;
+      case 'completed': return 'bg-green-100 text-green-800 border-green-200';
+      case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
+      case 'no_show': return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'confirmed': return 'bg-blue-100 text-blue-800 border-blue-200';
+      default: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
     }
+  };
 
-    return {
-      style: {
-        backgroundColor,
-        borderRadius: '8px',
-        opacity: 0.9,
-        color: 'white',
-        border: '0px',
-        display: 'block',
-        fontSize: '12px',
-        padding: '4px'
-      }
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'completed': return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'cancelled': return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'no_show': return <AlertCircle className="h-4 w-4 text-gray-500" />;
+      default: return <Clock className="h-4 w-4 text-yellow-500" />;
+    }
+  };
+
+  const getStatusName = (status) => {
+    const names = {
+      'scheduled': 'Запланировано',
+      'confirmed': 'Подтверждено',
+      'completed': 'Выполнено',
+      'cancelled': 'Отменено',
+      'no_show': 'Не явился'
     };
+    return names[status] || status;
   };
 
-  // Кастомный компонент события
-  const EventComponent = ({ event }: { event: CalendarEvent }) => (
-    <div className="flex flex-col h-full p-1">
-      <div className="font-medium text-xs truncate">
-        {event.resource.clientName}
-      </div>
-      <div className="text-xs opacity-90 truncate">
-        {event.resource.serviceName}
-      </div>
-      <div className="text-xs opacity-75">
-        {event.resource.price}₽
-      </div>
-    </div>
-  );
+  // Статистика
+  const todayAppointments = appointments.filter(apt => {
+    const today = new Date().toDateString();
+    const aptDate = new Date(apt.scheduled_date).toDateString();
+    return today === aptDate;
+  });
 
-  // AI оптимизация - предложение лучших слотов
-  const getOptimalSlots = () => {
-    const today = new Date();
-    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-    
-    // Простая логика - предлагаем утренние слоты в рабочие дни
-    const optimalSlots = [];
-    for (let i = 1; i <= 5; i++) { // Пн-Пт
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      
-      // Утренние слоты 9:00, 10:00, 11:00
-      for (let hour = 9; hour <= 11; hour++) {
-        const slot = new Date(date);
-        slot.setHours(hour, 0, 0, 0);
-        
-        // Проверяем, что слот свободен
-        const hasConflict = events.some(event => 
-          event.start <= slot && event.end > slot
-        );
-        
-        if (!hasConflict) {
-          optimalSlots.push(slot);
-        }
-      }
-    }
-    
-    return optimalSlots.slice(0, 6); // Возвращаем до 6 оптимальных слотов
+  const appointmentStats = {
+    today: todayAppointments.length,
+    completed: appointments.filter(a => a.status === 'completed').length,
+    pending: appointments.filter(a => ['scheduled', 'confirmed'].includes(a.status)).length,
+    cancelled: appointments.filter(a => ['cancelled', 'no_show'].includes(a.status)).length
   };
 
-  // Вычисление загрузки календаря
-  const getCalendarUtilization = () => {
-    const today = new Date();
-    const todayEvents = events.filter(e => moment(e.start).isSame(today, 'day'));
-    const workingHours = 12; // 8:00 - 20:00
-    const busyHours = todayEvents.reduce((sum, e) => sum + e.resource.duration, 0) / 60;
-    return Math.round((busyHours / workingHours) * 100);
-  };
-
-  const optimalSlots = getOptimalSlots();
-  const utilization = getCalendarUtilization();
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-muted-foreground">Загрузка расписания...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Заголовок и управление */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Календарь записей</h1>
-          <p className="text-muted-foreground">
-            Перетаскивайте записи для изменения времени • Изменяйте размер для длительности
-          </p>
+          <h1 className="text-3xl font-bold">Расписание</h1>
+          <p className="text-muted-foreground">Управление записями и календарем</p>
         </div>
-        
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={() => setDate(new Date())}
-          >
-            Сегодня
+          <Button onClick={refetch} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Обновить
           </Button>
-          <Dialog open={showForm} onOpenChange={setShowForm}>
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-primary">
-                <Plus className="h-4 w-4 mr-2" />
-                Новая запись
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Создать запись</DialogTitle>
-              </DialogHeader>
-              <AppointmentForm 
-                selectedDate={selectedSlot?.start}
-                open={false}
-                onClose={() => setShowForm(false)}
-                onSubmit={() => {}}
-              />
-            </DialogContent>
-          </Dialog>
+          <Button 
+            onClick={() => {
+              setSelectedSlot(null);
+              setSelectedAppointment(null);
+              setShowAppointmentForm(true);
+            }}
+            className="bg-gradient-primary text-white shadow-soft hover:shadow-glow"
+            size="lg"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Новая запись
+          </Button>
         </div>
       </div>
 
-      {/* Статистика и AI оптимизация */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Статистика дня */}
-        <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-blue-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Записей сегодня</p>
-                  <p className="text-2xl font-bold">
-                    {events.filter(e => moment(e.start).isSame(new Date(), 'day')).length}
-                  </p>
-                </div>
+      {/* Статистика */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5 text-primary" />
+              <div>
+                <div className="text-2xl font-bold">{appointmentStats.today}</div>
+                <div className="text-sm text-muted-foreground">Сегодня</div>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-green-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Подтверждено</p>
-                  <p className="text-2xl font-bold">
-                    {events.filter(e => 
-                      moment(e.start).isSame(new Date(), 'day') && 
-                      e.resource.status === 'confirmed'
-                    ).length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-purple-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Загрузка</p>
-                  <p className="text-2xl font-bold">{utilization}%</p>
-                </div>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <div>
+                <div className="text-2xl font-bold">{appointmentStats.completed}</div>
+                <div className="text-sm text-muted-foreground">Выполнено</div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <div className="h-4 w-4 bg-gradient-primary rounded-full" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Выручка</p>
-                  <p className="text-2xl font-bold">
-                    {events
-                      .filter(e => moment(e.start).isSame(new Date(), 'day'))
-                      .reduce((sum, e) => sum + e.resource.price, 0)
-                    }₽
-                  </p>
-                </div>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-yellow-500" />
+              <div>
+                <div className="text-2xl font-bold">{appointmentStats.pending}</div>
+                <div className="text-sm text-muted-foreground">Запланировано</div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* AI Оптимизация */}
-        {optimalSlots.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Sparkles className="h-5 w-5 text-yellow-500" />
-                AI Рекомендации
-              </CardTitle>
-              <CardDescription>
-                Оптимальные свободные слоты
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {optimalSlots.slice(0, 4).map((slot, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedSlot({ start: slot, end: new Date(slot.getTime() + 60 * 60 * 1000) });
-                      setShowForm(true);
-                    }}
-                    className="w-full justify-start text-xs"
-                  >
-                    <Clock className="h-3 w-3 mr-2" />
-                    {moment(slot).format('dd DD.MM HH:mm')}
-                  </Button>
-                ))}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-red-500" />
+              <div>
+                <div className="text-2xl font-bold">{appointmentStats.cancelled}</div>
+                <div className="text-sm text-muted-foreground">Отменено</div>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Легенда статусов */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-wrap gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-blue-500 rounded"></div>
-              <span className="text-sm">Запланировано</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-500 rounded"></div>
-              <span className="text-sm">Подтверждено</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-              <span className="text-sm">В процессе</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-purple-500 rounded"></div>
-              <span className="text-sm">Завершено</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-500 rounded"></div>
-              <span className="text-sm">Отменено</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-gray-500 rounded"></div>
-              <span className="text-sm">Не явились</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Основной календарь */}
+      {/* Календарь */}
       <Card>
         <CardContent className="p-6">
-          <div style={{ height: '600px' }}>
-            <DragAndDropCalendar
+          <div style={{ height: 600 }}>
+            <Calendar
               localizer={localizer}
-              events={events}
+              events={calendarEvents}
               startAccessor="start"
               endAccessor="end"
               view={view}
@@ -424,95 +255,110 @@ export default function CalendarPage() {
               onNavigate={setDate}
               onSelectSlot={handleSelectSlot}
               onSelectEvent={handleSelectEvent}
-              onEventDrop={handleEventDrop}
-              onEventResize={handleEventResize}
               selectable
-              resizable
-              draggableAccessor={() => true}
-              eventPropGetter={eventStyleGetter}
-              components={{
-                event: EventComponent
-              }}
+              popup
+              views={['month', 'week', 'day']}
               messages={{
-                next: 'Далее',
-                previous: 'Назад',
+                next: 'Следующий',
+                previous: 'Предыдущий',
                 today: 'Сегодня',
                 month: 'Месяц',
                 week: 'Неделя',
-                day: 'День',
-                agenda: 'Повестка',
-                date: 'Дата',
-                time: 'Время',
-                event: 'Событие',
-                noEventsInRange: 'Нет записей в этом диапазоне.',
-                allDay: 'Весь день'
+                day: 'День'
               }}
-              formats={{
-                timeGutterFormat: 'HH:mm',
-                eventTimeRangeFormat: ({ start, end }, culture, localizer) =>
-                  localizer?.format(start, 'HH:mm', culture) + ' - ' + localizer?.format(end, 'HH:mm', culture),
-                dayFormat: 'dd DD.MM',
-                dayHeaderFormat: 'dddd DD.MM.YYYY'
-              }}
-              min={new Date(2024, 0, 1, 8, 0, 0)} // Начало рабочего дня 8:00
-              max={new Date(2024, 0, 1, 20, 0, 0)} // Конец рабочего дня 20:00
-              step={30} // Шаг 30 минут
-              timeslots={2} // 2 слота по 30 минут = 1 час
+              eventPropGetter={(event) => ({
+                style: {
+                  backgroundColor: event.resource.status === 'completed' ? '#10b981' :
+                                  event.resource.status === 'cancelled' ? '#ef4444' :
+                                  event.resource.status === 'confirmed' ? '#3b82f6' : '#f59e0b',
+                  borderRadius: '4px',
+                  border: 'none',
+                  color: 'white'
+                }
+              })}
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Модальное окно выбранного события */}
-      {selectedEvent && (
-        <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Детали записи</DialogTitle>
-            </DialogHeader>
+      {/* Диалог добавления/редактирования записи */}
+      <Dialog open={showAppointmentForm} onOpenChange={setShowAppointmentForm}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedAppointment ? 'Редактировать запись' : 'Новая запись'}
+            </DialogTitle>
+            <DialogDescription>
+              Заполните информацию о записи
+            </DialogDescription>
+          </DialogHeader>
+          <AppointmentForm
+            appointment={selectedAppointment}
+            selectedSlot={selectedSlot}
+            onSubmit={selectedAppointment ? handleUpdateAppointment : handleAddAppointment}
+            onCancel={() => {
+              setShowAppointmentForm(false);
+              setSelectedSlot(null);
+              setSelectedAppointment(null);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог деталей записи */}
+      <Dialog open={showAppointmentDetails} onOpenChange={setShowAppointmentDetails}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Детали записи</DialogTitle>
+          </DialogHeader>
+          {selectedAppointment && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Клиент</label>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedEvent.resource.clientName}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Питомец</label>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedEvent.resource.petName}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Услуга</label>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedEvent.resource.serviceName}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Стоимость</label>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedEvent.resource.price}₽
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Время</label>
-                  <p className="text-sm text-muted-foreground">
-                    {moment(selectedEvent.start).format('DD.MM.YYYY HH:mm')} - {moment(selectedEvent.end).format('HH:mm')}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Статус</label>
-                  <Badge variant="outline">
-                    {selectedEvent.resource.status}
-                  </Badge>
-                </div>
+              <div className="flex items-center space-x-2">
+                {getStatusIcon(selectedAppointment.status)}
+                <Badge className={getStatusColor(selectedAppointment.status)}>
+                  {getStatusName(selectedAppointment.status)}
+                </Badge>
+              </div>
+              
+              <div className="space-y-2">
+                <div><strong>Клиент:</strong> {selectedAppointment.clients?.first_name} {selectedAppointment.clients?.last_name}</div>
+                <div><strong>Питомец:</strong> {selectedAppointment.pets?.name}</div>
+                <div><strong>Услуга:</strong> {selectedAppointment.services?.name}</div>
+                <div><strong>Дата:</strong> {format(new Date(selectedAppointment.scheduled_date), 'dd.MM.yyyy', { locale: ru })}</div>
+                <div><strong>Время:</strong> {selectedAppointment.scheduled_time}</div>
+                <div><strong>Длительность:</strong> {selectedAppointment.duration_minutes} мин</div>
+                <div><strong>Цена:</strong> ₽{selectedAppointment.price}</div>
+                {selectedAppointment.notes && (
+                  <div><strong>Заметки:</strong> {selectedAppointment.notes}</div>
+                )}
+              </div>
+              
+              <div className="flex space-x-2 pt-4">
+                <Button
+                  onClick={() => {
+                    setShowAppointmentDetails(false);
+                    setShowAppointmentForm(true);
+                  }}
+                  className="flex-1 bg-gradient-primary text-white"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Редактировать
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleDeleteAppointment}
+                  className="bg-card text-foreground border-input hover:bg-destructive hover:text-destructive-foreground"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Удалить
+                </Button>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
-}
+};
+
+export default CalendarPage;

@@ -1,199 +1,103 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export interface MessageTemplate {
-  id: string;
-  salon_id: string;
-  name: string;
-  type: 'sms' | 'email' | 'whatsapp' | 'telegram';
-  trigger_event: 'appointment_confirmation' | 'reminder_24h' | 'reminder_2h' | 'follow_up' | 'birthday' | 'no_show';
-  subject?: string;
-  content: string;
-  variables: string[];
-  is_active: boolean;
-  is_default: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface NotificationSettings {
-  id: string;
-  salon_id: string;
-  type: 'sms' | 'email' | 'whatsapp' | 'telegram';
-  is_enabled: boolean;
-  api_key?: string;
-  api_settings: any;
-  daily_limit: number;
-  monthly_limit: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Notification {
-  id: string;
-  salon_id: string;
-  appointment_id?: string;
-  client_id: string;
-  type: 'sms' | 'email' | 'whatsapp' | 'telegram';
-  trigger_event: string;
-  template_id?: string;
-  recipient: string;
-  subject?: string;
-  content: string;
-  status: 'pending' | 'sent' | 'delivered' | 'failed' | 'read';
-  error_message?: string;
-  sent_at?: string;
-  delivered_at?: string;
-  read_at?: string;
-  provider_id?: string;
-  cost: number;
-  created_at: string;
-  updated_at: string;
-}
-
 export const useNotifications = () => {
-  const [templates, setTemplates] = useState<MessageTemplate[]>([]);
-  const [settings, setSettings] = useState<NotificationSettings[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState([]);
+  const [templates, setTemplates] = useState([]);
+  const [settings, setSettings] = useState([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchTemplates = async () => {
-    try {
-      // Get user's salon_id from profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('salon_id')
-        .eq('id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (!profile?.salon_id) {
-        throw new Error('Не удалось определить салон пользователя');
-      }
-
-      const { data, error } = await supabase
-        .from('message_templates')
-        .select('*')
-        .eq('salon_id', profile.salon_id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setTemplates((data || []) as MessageTemplate[]);
-    } catch (error) {
-      console.error('Error fetching templates:', error);
-      toast({
-        title: 'Ошибка',
-        description: 'Не удалось загрузить шаблоны',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const fetchSettings = async () => {
-    try {
-      // Get user's salon_id from profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('salon_id')
-        .eq('id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (!profile?.salon_id) {
-        throw new Error('Не удалось определить салон пользователя');
-      }
-
-      const { data, error } = await supabase
-        .from('notification_settings')
-        .select('*')
-        .eq('salon_id', profile.salon_id)
-        .order('type');
-
-      if (error) throw error;
-      setSettings((data || []) as NotificationSettings[]);
-    } catch (error) {
-      console.error('Error fetching settings:', error);
-      toast({
-        title: 'Ошибка',
-        description: 'Не удалось загрузить настройки',
-        variant: 'destructive'
-      });
-    }
-  };
-
   const fetchNotifications = async () => {
     try {
-      // Get user's salon_id from profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('salon_id')
-        .eq('id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (!profile?.salon_id) {
-        throw new Error('Не удалось определить салон пользователя');
-      }
-
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .eq('salon_id', profile.salon_id)
         .order('created_at', { ascending: false })
         .limit(100);
 
       if (error) throw error;
-      setNotifications((data || []) as Notification[]);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
+      setNotifications(data || []);
+    } catch (error: any) {
+      console.error('Ошибка загрузки уведомлений:', error);
       toast({
         title: 'Ошибка',
         description: 'Не удалось загрузить уведомления',
         variant: 'destructive'
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  const addTemplate = async (templateData: Omit<MessageTemplate, 'id' | 'salon_id' | 'created_at' | 'updated_at'>) => {
+  const fetchTemplates = async () => {
     try {
-      // Get user's salon_id from profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('salon_id')
-        .eq('id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (!profile?.salon_id) {
-        throw new Error('Не удалось определить салон пользователя');
-      }
-
       const { data, error } = await supabase
         .from('message_templates')
-        .insert([{ ...templateData, salon_id: profile.salon_id }])
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setTemplates(data || []);
+    } catch (error: any) {
+      console.error('Ошибка загрузки шаблонов:', error);
+    }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('notification_settings')
+        .select('*');
+
+      if (error) throw error;
+      
+      // Создаем настройки по умолчанию, если их нет
+      const defaultSettings = ['sms', 'email', 'whatsapp', 'telegram'];
+      const existingTypes = (data || []).map(s => s.type);
+      const missingTypes = defaultSettings.filter(type => !existingTypes.includes(type));
+      
+      if (missingTypes.length > 0) {
+        const newSettings = missingTypes.map(type => ({
+          type,
+          is_enabled: false,
+          daily_limit: 1000,
+          monthly_limit: 30000
+        }));
+        
+        const { data: created } = await supabase
+          .from('notification_settings')
+          .insert(newSettings)
+          .select();
+        
+        setSettings([...(data || []), ...(created || [])]);
+      } else {
+        setSettings(data || []);
+      }
+    } catch (error: any) {
+      console.error('Ошибка загрузки настроек:', error);
+    }
+  };
+
+  const addTemplate = async (templateData: any) => {
+    try {
+      const { data, error } = await supabase
+        .from('message_templates')
+        .insert(templateData)
         .select()
         .single();
 
       if (error) throw error;
       
-      setTemplates(prev => [data as MessageTemplate, ...prev]);
-      toast({
-        title: 'Успешно',
-        description: 'Шаблон создан'
-      });
-      return { data, error: null };
-    } catch (error) {
-      console.error('Error adding template:', error);
-      toast({
-        title: 'Ошибка',
-        description: 'Не удалось создать шаблон',
-        variant: 'destructive'
-      });
-      return { data: null, error };
+      await fetchTemplates();
+      return data;
+    } catch (error: any) {
+      console.error('Ошибка создания шаблона:', error);
+      throw error;
     }
   };
 
-  const updateTemplate = async (id: string, updates: Partial<MessageTemplate>) => {
+  const updateTemplate = async (id: string, updates: any) => {
     try {
       const { data, error } = await supabase
         .from('message_templates')
@@ -203,153 +107,154 @@ export const useNotifications = () => {
         .single();
 
       if (error) throw error;
-
-      setTemplates(prev => prev.map(template => 
-        template.id === id ? { ...template, ...(data as MessageTemplate) } : template
-      ));
-
-      toast({
-        title: 'Успешно',
-        description: 'Шаблон обновлен'
-      });
-      return { data, error: null };
-    } catch (error) {
-      console.error('Error updating template:', error);
-      toast({
-        title: 'Ошибка',
-        description: 'Не удалось обновить шаблон',
-        variant: 'destructive'
-      });
-      return { data: null, error };
+      
+      await fetchTemplates();
+      return data;
+    } catch (error: any) {
+      console.error('Ошибка обновления шаблона:', error);
+      throw error;
     }
   };
 
-  const updateSettings = async (type: string, updates: Partial<NotificationSettings>) => {
+  const updateSettings = async (type: string, updates: any) => {
     try {
-      // Get user's salon_id from profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('salon_id')
-        .eq('id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (!profile?.salon_id) {
-        throw new Error('Не удалось определить салон пользователя');
-      }
-
       const { data, error } = await supabase
         .from('notification_settings')
-        .upsert({ 
-          ...updates, 
-          salon_id: profile.salon_id,
-          type 
-        })
+        .update(updates)
+        .eq('type', type)
         .select()
         .single();
 
       if (error) throw error;
+      
+      await fetchSettings();
+      return data;
+    } catch (error: any) {
+      console.error('Ошибка обновления настроек:', error);
+      throw error;
+    }
+  };
 
-      setSettings(prev => {
-        const index = prev.findIndex(s => s.type === type);
-        if (index >= 0) {
-          return prev.map(s => s.type === type ? { ...s, ...(data as NotificationSettings) } : s);
-        } else {
-          return [...prev, data as NotificationSettings];
+  const sendTestNotification = async (type: string, recipient: string, content: string, subject?: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-notifications', {
+        body: {
+          type,
+          recipient,
+          content,
+          subject,
+          trigger_event: 'test'
         }
       });
 
+      if (error) throw error;
+
+      await fetchNotifications();
+      
       toast({
         title: 'Успешно',
-        description: 'Настройки обновлены'
+        description: 'Тестовое уведомление отправлено',
       });
-      return { data, error: null };
-    } catch (error) {
-      console.error('Error updating settings:', error);
-      toast({
-        title: 'Ошибка',
-        description: 'Не удалось обновить настройки',
-        variant: 'destructive'
-      });
-      return { data: null, error };
+
+      return data;
+    } catch (error: any) {
+      console.error('Ошибка отправки уведомления:', error);
+      throw new Error(error.message || 'Ошибка отправки уведомления');
     }
   };
 
-  const sendTestNotification = async (type: string, recipient: string, content: string) => {
+  const sendNotificationFromTemplate = async (templateId: string, recipient: string, variables: any = {}) => {
     try {
-      // Get user's salon_id from profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('salon_id')
-        .eq('id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (!profile?.salon_id) {
-        throw new Error('Не удалось определить салон пользователя');
+      const template = templates.find(t => t.id === templateId);
+      if (!template) {
+        throw new Error('Шаблон не найден');
       }
 
-      const { data, error } = await supabase
-        .from('notifications')
-        .insert([{
-          salon_id: profile.salon_id,
-          client_id: profile.salon_id, // Используем salon_id как client_id для тестовых сообщений
-          type,
-          trigger_event: 'test',
+      const { data, error } = await supabase.functions.invoke('send-notifications', {
+        body: {
+          type: template.type,
           recipient,
-          content,
-          status: 'pending'
-        }])
-        .select()
-        .single();
+          content: template.content,
+          subject: template.subject,
+          template_id: templateId,
+          trigger_event: template.trigger_event
+        }
+      });
 
       if (error) throw error;
 
-      setNotifications(prev => [data as Notification, ...prev]);
+      await fetchNotifications();
+      
       toast({
         title: 'Успешно',
-        description: 'Тестовое сообщение отправлено'
+        description: 'Уведомление отправлено',
       });
-    } catch (error) {
-      console.error('Error sending test notification:', error);
-      toast({
-        title: 'Ошибка',
-        description: 'Не удалось отправить тестовое сообщение',
-        variant: 'destructive'
-      });
+
+      return data;
+    } catch (error: any) {
+      console.error('Ошибка отправки уведомления по шаблону:', error);
+      throw new Error(error.message || 'Ошибка отправки уведомления');
     }
   };
 
-  // Переменные для шаблонов
-  const getAvailableVariables = () => [
-    '{{client_name}}',
-    '{{pet_name}}',
-    '{{service_name}}',
-    '{{appointment_date}}',
-    '{{appointment_time}}',
-    '{{salon_name}}',
-    '{{salon_address}}',
-    '{{salon_phone}}',
-    '{{price}}',
-    '{{groomer_name}}'
-  ];
+  const processAutomaticReminders = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('process-automatic-reminders');
+
+      if (error) throw error;
+
+      toast({
+        title: 'Успешно',
+        description: `Обработано напоминаний: ${data.processed}`,
+      });
+
+      await fetchNotifications();
+      return data;
+    } catch (error: any) {
+      console.error('Ошибка обработки автоматических напоминаний:', error);
+      throw new Error(error.message || 'Ошибка обработки напоминаний');
+    }
+  };
+
+  const getAvailableVariables = () => {
+    return [
+      '{{client_name}}',
+      '{{pet_name}}',
+      '{{service_name}}',
+      '{{appointment_time}}',
+      '{{appointment_date}}',
+      '{{salon_name}}',
+      '{{salon_address}}',
+      '{{salon_phone}}'
+    ];
+  };
+
+  const refetch = async () => {
+    setLoading(true);
+    await Promise.all([
+      fetchNotifications(),
+      fetchTemplates(),
+      fetchSettings()
+    ]);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    Promise.all([
-      fetchTemplates(),
-      fetchSettings(),
-      fetchNotifications()
-    ]);
+    refetch();
   }, []);
 
   return {
+    notifications,
     templates,
     settings,
-    notifications,
     loading,
     addTemplate,
     updateTemplate,
     updateSettings,
     sendTestNotification,
+    sendNotificationFromTemplate,
+    processAutomaticReminders,
     getAvailableVariables,
-    refetch: () => Promise.all([fetchTemplates(), fetchSettings(), fetchNotifications()])
+    refetch
   };
 };
