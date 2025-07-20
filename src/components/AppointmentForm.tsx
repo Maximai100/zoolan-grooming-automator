@@ -67,7 +67,7 @@ export default function AppointmentForm({
     client_id: appointment?.client_id || '',
     pet_id: appointment?.pet_id || '',
     service_id: appointment?.service_id || '',
-    groomer_id: appointment?.groomer_id || '',
+    groomer_id: appointment?.groomer_id || null,
     scheduled_date: appointment?.scheduled_date || (selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''),
     scheduled_time: appointment?.scheduled_time || selectedTime || '',
     duration_minutes: appointment?.duration_minutes || 60,
