@@ -283,59 +283,62 @@ export default function POSPage() {
                 </CardHeader>
                 <CardContent>
                   <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-3' : 'space-y-2'}>
-                     {services.map(service => (
-                       <div
-                         key={service.id}
-                         className={`border rounded-lg hover:bg-accent transition-colors ${
-                           viewMode === 'grid' ? 'p-3' : 'p-2'
-                         }`}
-                       >
-                        <div className={`flex ${viewMode === 'grid' ? 'justify-between items-start' : 'items-center justify-between'}`}>
-                          <div className={viewMode === 'grid' ? '' : 'flex items-center gap-3'}>
-                            <h3 className="font-medium">{service.name}</h3>
-                            {viewMode === 'grid' && (
-                              <>
-                                <p className="text-sm text-muted-foreground">
-                                  {service.duration_minutes} мин
-                                </p>
-                                {service.category && (
-                                  <Badge variant="secondary" className="mt-1">
-                                    {service.category}
-                                  </Badge>
-                                )}
-                              </>
-                            )}
-                            {viewMode === 'list' && (
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm text-muted-foreground">
-                                  {service.duration_minutes} мин
-                                </span>
-                                {service.category && (
-                                  <Badge variant="secondary">
-                                    {service.category}
-                                  </Badge>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                           <div className={`text-right ${viewMode === 'list' ? 'flex items-center gap-2' : ''}`}>
-                             <p className="font-semibold">{service.price} ₽</p>
-                             <Button 
-                               size="sm" 
-                               className={`${viewMode === 'grid' ? 'mt-1' : ''} bg-gradient-primary text-white`}
-                               onClick={() => addToCart({
-                                 id: service.id,
-                                 name: service.name,
-                                 price: service.price,
-                                 type: 'service'
-                               })}
-                             >
-                               <Plus className="h-3 w-3" />
-                             </Button>
+                      {services.map(service => (
+                        <div
+                          key={service.id}
+                          className={`border rounded-lg transition-colors ${
+                            viewMode === 'grid' ? 'p-3' : 'p-2'
+                          }`}
+                        >
+                         <div className={`flex ${viewMode === 'grid' ? 'justify-between items-start' : 'items-center justify-between'}`}>
+                           <div className={viewMode === 'grid' ? '' : 'flex items-center gap-3'}>
+                             <h3 className="font-medium">{service.name}</h3>
+                             {viewMode === 'grid' && (
+                               <>
+                                 <p className="text-sm text-muted-foreground">
+                                   {service.duration_minutes} мин
+                                 </p>
+                                 {service.category && (
+                                   <Badge variant="secondary" className="mt-1">
+                                     {service.category}
+                                   </Badge>
+                                 )}
+                               </>
+                             )}
+                             {viewMode === 'list' && (
+                               <div className="flex items-center gap-2">
+                                 <span className="text-sm text-muted-foreground">
+                                   {service.duration_minutes} мин
+                                 </span>
+                                 {service.category && (
+                                   <Badge variant="secondary">
+                                     {service.category}
+                                   </Badge>
+                                 )}
+                               </div>
+                             )}
                            </div>
-                        </div>
-                      </div>
-                    ))}
+                            <div className={`text-right ${viewMode === 'list' ? 'flex items-center gap-2' : ''}`}>
+                              <p className="font-semibold">{service.price} ₽</p>
+                              <Button 
+                                size="sm" 
+                                className={`${viewMode === 'grid' ? 'mt-1' : ''} bg-gradient-primary text-white`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  addToCart({
+                                    id: service.id,
+                                    name: service.name,
+                                    price: service.price,
+                                    type: 'service'
+                                  });
+                                }}
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
+                         </div>
+                       </div>
+                     ))}
                   </div>
                 </CardContent>
               </Card>
@@ -364,62 +367,65 @@ export default function POSPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                     {products.map(product => (
-                       <div
-                         key={product.id}
-                         className={`p-3 border rounded-lg transition-colors ${
-                           product.current_stock > 0 
-                             ? 'hover:bg-accent' 
-                             : 'opacity-50 cursor-not-allowed bg-muted'
-                         }`}
-                       >
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h3 className="font-medium">{product.name}</h3>
-                            {product.description && (
-                              <p className="text-sm text-muted-foreground line-clamp-2">
-                                {product.description}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-2 mt-1">
-                              {product.category && (
-                                <Badge variant="secondary">
-                                  {product.category}
-                                </Badge>
-                              )}
-                              <Badge 
-                                variant={product.current_stock <= product.min_stock_level ? "destructive" : "outline"}
-                                className="text-xs"
-                              >
-                                {product.current_stock} шт
-                              </Badge>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold">{product.unit_price || product.unit_cost} ₽</p>
-                             {product.current_stock > 0 ? (
-                               <Button 
-                                 size="sm" 
-                                 className="mt-1 bg-gradient-primary text-white"
-                                 onClick={() => addToCart({
-                                   id: product.id,
-                                   name: product.name,
-                                   price: product.unit_price || product.unit_cost,
-                                   type: 'product',
-                                   stock: product.current_stock
-                                 })}
+                      {products.map(product => (
+                        <div
+                          key={product.id}
+                          className={`p-3 border rounded-lg transition-colors ${
+                            product.current_stock > 0 
+                              ? '' 
+                              : 'opacity-50 cursor-not-allowed bg-muted'
+                          }`}
+                        >
+                         <div className="flex justify-between items-start">
+                           <div className="flex-1">
+                             <h3 className="font-medium">{product.name}</h3>
+                             {product.description && (
+                               <p className="text-sm text-muted-foreground line-clamp-2">
+                                 {product.description}
+                               </p>
+                             )}
+                             <div className="flex items-center gap-2 mt-1">
+                               {product.category && (
+                                 <Badge variant="secondary">
+                                   {product.category}
+                                 </Badge>
+                               )}
+                               <Badge 
+                                 variant={product.current_stock <= product.min_stock_level ? "destructive" : "outline"}
+                                 className="text-xs"
                                >
-                                 <Plus className="h-3 w-3" />
-                               </Button>
-                             ) : (
-                              <Badge variant="destructive" className="mt-1">
-                                Нет в наличии
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                                 {product.current_stock} шт
+                               </Badge>
+                             </div>
+                           </div>
+                           <div className="text-right">
+                             <p className="font-semibold">{product.unit_price || product.unit_cost} ₽</p>
+                              {product.current_stock > 0 ? (
+                                <Button 
+                                  size="sm" 
+                                  className="mt-1 bg-gradient-primary text-white"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    addToCart({
+                                      id: product.id,
+                                      name: product.name,
+                                      price: product.unit_price || product.unit_cost,
+                                      type: 'product',
+                                      stock: product.current_stock
+                                    });
+                                  }}
+                                >
+                                  <Plus className="h-3 w-3" />
+                                </Button>
+                              ) : (
+                               <Badge variant="destructive" className="mt-1">
+                                 Нет в наличии
+                               </Badge>
+                             )}
+                           </div>
+                         </div>
+                       </div>
+                     ))}
                     {products.length === 0 && (
                       <div className="col-span-2 text-center py-8 text-muted-foreground">
                         Товары не найдены

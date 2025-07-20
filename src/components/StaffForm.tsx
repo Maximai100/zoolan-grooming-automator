@@ -48,6 +48,9 @@ const StaffForm = ({ open, onClose, onStaffAdded }: StaffFormProps) => {
         throw new Error('Не удалось определить салон');
       }
 
+      // Сохраняем текущую сессию
+      const { data: currentSession } = await supabase.auth.getSession();
+
       // Создаем приглашение через публичное API регистрации
       const { data: newUser, error: userError } = await supabase.auth.signUp({
         email: formData.email,
@@ -68,9 +71,16 @@ const StaffForm = ({ open, onClose, onStaffAdded }: StaffFormProps) => {
       if (!newUser.user) {
         throw new Error('Не удалось создать пользователя');
       }
+
+      // Сразу же восстанавливаем сессию изначального пользователя
+      if (currentSession.session) {
+        await supabase.auth.setSession(currentSession.session);
+      }
       
-      // Профиль автоматически создается через триггер handle_new_user()
-      // Нужно только обновить его с дополнительными данными
+      // Ждем немного, чтобы триггер успел создать профиль
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Обновляем профиль с дополнительными данными
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -97,7 +107,6 @@ const StaffForm = ({ open, onClose, onStaffAdded }: StaffFormProps) => {
         console.warn('Не удалось отправить email-приглашение:', emailError);
         // Не прерываем процесс, если email не отправился
       }
-
 
       toast({
         title: 'Сотрудник добавлен',
