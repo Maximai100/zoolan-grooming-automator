@@ -12,6 +12,7 @@ import {
   LogOut,
   Heart,
   Wrench,
+  Gift,
   ShoppingCart,
   Menu,
   X
@@ -30,6 +31,7 @@ const navigation = [
   { name: 'Аналитика', href: '/analytics', icon: BarChart3 },
   { name: 'Персонал', href: '/staff', icon: UserCog },
   { name: 'Услуги', href: '/services', icon: Wrench },
+  { name: 'Лояльность', href: '/loyalty', icon: Gift },
   { name: 'Настройки', href: '/settings', icon: Settings },
 ];
 

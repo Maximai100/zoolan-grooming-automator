@@ -47,3 +47,77 @@ export interface Notification {
   created_at: string;
   updated_at: string;
 }
+
+// Extended types with joined relations
+export interface ClientLoyaltyBalanceWithRelations {
+  id: string;
+  client_id: string;
+  program_id: string;
+  current_points: number;
+  total_earned: number;
+  total_redeemed: number;
+  tier_level: string;
+  tier_achieved_at: string;
+  last_activity_date: string;
+  created_at: string;
+  updated_at: string;
+  clients?: {
+    first_name: string;
+    last_name: string;
+  };
+  loyalty_programs?: {
+    name: string;
+    type: string;
+  };
+}
+
+export interface LoyaltyTransactionWithRelations {
+  id: string;
+  client_id: string;
+  program_id: string;
+  order_id?: string;
+  appointment_id?: string;
+  transaction_type: 'earned' | 'redeemed' | 'expired' | 'adjusted';
+  points_amount: number;
+  description?: string;
+  reference_id?: string;
+  expires_at?: string;
+  processed_by?: string;
+  created_at: string;
+  clients?: {
+    first_name: string;
+    last_name: string;
+  };
+  loyalty_programs?: {
+    name: string;
+  };
+}
+
+export interface PersonalOfferWithRelations {
+  id: string;
+  salon_id: string;
+  client_id: string;
+  offer_type: 'discount' | 'bonus_points' | 'free_service' | 'free_product';
+  title: string;
+  description?: string;
+  discount_value?: number;
+  bonus_points?: number;
+  free_service_id?: string;
+  free_product_id?: string;
+  min_order_amount: number;
+  usage_limit: number;
+  usage_count: number;
+  is_active: boolean;
+  is_used: boolean;
+  valid_from: string;
+  valid_until?: string;
+  used_at?: string;
+  used_in_order_id?: string;
+  trigger_condition?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+  clients?: {
+    first_name: string;
+    last_name: string;
+  };
+}
