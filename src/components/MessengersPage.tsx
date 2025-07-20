@@ -475,16 +475,16 @@ const MessengersPage = () => {
             </Dialog>
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {templates.map((template) => (
               <Card key={template.id}>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
                       <FileText className="w-5 h-5" />
                       {template.name}
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
+                    </div>
+                    <div className="flex gap-2">
                       <Badge variant={template.is_active ? 'default' : 'secondary'}>
                         {template.is_active ? 'Активен' : 'Неактивен'}
                       </Badge>
@@ -492,33 +492,32 @@ const MessengersPage = () => {
                         {template.approval_status === 'approved' ? 'Одобрен' : 'Ожидает одобрения'}
                       </Badge>
                     </div>
-                  </div>
+                  </CardTitle>
                   <CardDescription>
                     {getTemplateTypeText(template.template_type)}
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="p-3 bg-muted rounded-lg">
-                      <p className="text-sm whitespace-pre-wrap">{template.content}</p>
-                    </div>
+                <CardContent className="space-y-4">
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <p className="text-sm whitespace-pre-wrap">{template.content}</p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingTemplate(template)}
+                    >
+                      Редактировать
+                    </Button>
                     
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setEditingTemplate(template)}
-                      >
-                        Редактировать
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateTemplate(template.id, { is_active: !template.is_active })}
-                      >
-                        {template.is_active ? 'Отключить' : 'Включить'}
-                      </Button>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateTemplate(template.id, { is_active: !template.is_active })}
+                    >
+                      {template.is_active ? 'Отключить' : 'Включить'}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -574,132 +573,125 @@ const MessengersPage = () => {
         </TabsContent>
 
         <TabsContent value="contacts" className="space-y-6">
-          <h2 className="text-xl font-semibold">Контакты мессенджеров</h2>
-          
-          <Card>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Платформа</TableHead>
-                    <TableHead>Имя</TableHead>
-                    <TableHead>Username</TableHead>
-                    <TableHead>Телефон</TableHead>
-                    <TableHead>Последнее сообщение</TableHead>
-                    <TableHead>Статус</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {contacts.map((contact) => (
-                    <TableRow key={contact.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {getPlatformIcon(contact.platform)}
-                          {getPlatformName(contact.platform)}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {contact.first_name} {contact.last_name}
-                      </TableCell>
-                      <TableCell>{contact.username || '-'}</TableCell>
-                      <TableCell>{contact.phone_number || '-'}</TableCell>
-                      <TableCell>
-                        {contact.last_message_at 
-                          ? format(new Date(contact.last_message_at), 'dd.MM.yyyy HH:mm', { locale: ru })
-                          : 'Никогда'
-                        }
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={contact.is_blocked ? 'destructive' : 'default'}>
-                          {contact.is_blocked ? 'Заблокирован' : 'Активен'}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Контакты мессенджеров</h2>
+          </div>
 
-              {contacts.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Users className="w-12 h-12 mx-auto mb-4" />
-                  <p>Нет контактов мессенджеров</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Контакт</TableHead>
+                <TableHead>Платформа</TableHead>
+                <TableHead>Телефон</TableHead>
+                <TableHead>Последнее сообщение</TableHead>
+                <TableHead>Статус</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {contacts.map((contact) => (
+                <TableRow key={contact.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      {contact.profile_photo_url && (
+                        <img src={contact.profile_photo_url} alt="" className="w-8 h-8 rounded-full" />
+                      )}
+                      <div>
+                        <div className="font-medium">
+                          {contact.first_name} {contact.last_name}
+                        </div>
+                        {contact.username && (
+                          <div className="text-sm text-muted-foreground">@{contact.username}</div>
+                        )}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {getPlatformIcon(contact.platform)}
+                      {getPlatformName(contact.platform)}
+                    </div>
+                  </TableCell>
+                  <TableCell>{contact.phone_number}</TableCell>
+                  <TableCell>
+                    {contact.last_message_at && format(new Date(contact.last_message_at), 'dd.MM.yyyy HH:mm', { locale: ru })}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={contact.is_blocked ? 'destructive' : 'default'}>
+                      {contact.is_blocked ? 'Заблокирован' : 'Активен'}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          {contacts.length === 0 && (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <Users className="w-12 h-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Нет контактов</h3>
+                <p className="text-muted-foreground text-center">
+                  Контакты появятся после первых сообщений от клиентов
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="messages" className="space-y-6">
-          <h2 className="text-xl font-semibold">История сообщений</h2>
-          
-          <Card>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Время</TableHead>
-                    <TableHead>Контакт</TableHead>
-                    <TableHead>Тип</TableHead>
-                    <TableHead>Содержимое</TableHead>
-                    <TableHead>Статус</TableHead>
-                    <TableHead>Направление</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {messages.map((message) => (
-                    <TableRow key={message.id}>
-                      <TableCell>
-                        {format(new Date(message.created_at), 'dd.MM.yyyy HH:mm', { locale: ru })}
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">
-                            {message.contact?.first_name} {message.contact?.last_name}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {getPlatformName(message.contact?.platform || '')}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>{message.message_type}</TableCell>
-                      <TableCell>
-                        <div className="max-w-xs truncate">
-                          {message.content}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={message.status === 'failed' ? 'destructive' : 'default'}>
-                          {getMessageStatusText(message.status)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          {message.is_outgoing ? (
-                            <>
-                              <Send className="w-4 h-4 text-blue-500" />
-                              <span className="text-sm">Исходящее</span>
-                            </>
-                          ) : (
-                            <>
-                              <MessageSquare className="w-4 h-4 text-green-500" />
-                              <span className="text-sm">Входящее</span>
-                            </>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">История сообщений</h2>
+          </div>
 
-              {messages.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <MessageSquare className="w-12 h-12 mx-auto mb-4" />
-                  <p>Нет сообщений</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Дата</TableHead>
+                <TableHead>Контакт</TableHead>
+                <TableHead>Сообщение</TableHead>
+                <TableHead>Тип</TableHead>
+                <TableHead>Статус</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {messages.map((message) => (
+                <TableRow key={message.id}>
+                  <TableCell>
+                    {format(new Date(message.created_at), 'dd.MM.yyyy HH:mm', { locale: ru })}
+                  </TableCell>
+                  <TableCell>
+                    {message.contact_id}
+                  </TableCell>
+                  <TableCell className="max-w-xs truncate">
+                    {message.content}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={message.is_outgoing ? 'default' : 'secondary'}>
+                      {message.is_outgoing ? 'Исходящее' : 'Входящее'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(message.status)}
+                      {getMessageStatusText(message.status)}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          {messages.length === 0 && (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <MessageSquare className="w-12 h-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Нет сообщений</h3>
+                <p className="text-muted-foreground text-center">
+                  История сообщений появится после настройки интеграций
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>
