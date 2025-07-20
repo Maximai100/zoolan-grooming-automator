@@ -59,13 +59,16 @@ const Dashboard = () => {
 
   // Недавние клиенты
   useEffect(() => {
-    if (!clientsLoading && clients.length > 0) {
-      const recent = clients
-        .slice(0, 5)
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      setRecentClients(recent);
-    } else if (!clientsLoading) {
-      setRecentClients([]);
+    if (!clientsLoading) {
+      if (clients.length > 0) {
+        const recent = clients
+          .slice()
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .slice(0, 5);
+        setRecentClients(recent);
+      } else {
+        setRecentClients([]);
+      }
     }
   }, [clients, clientsLoading]);
 

@@ -39,6 +39,7 @@ const ClientsPage = () => {
   const [selectedClientId, setSelectedClientId] = useState(null);
   const [showAppointmentForm, setShowAppointmentForm] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
+  const [selectedPet, setSelectedPet] = useState(null);
 
   const handleAddClient = async (clientData: any) => {
     try {
@@ -527,6 +528,7 @@ const ClientsPage = () => {
         }}
         onScheduleGrooming={(client, pet) => {
           setSelectedClient(client);
+          setSelectedPet(pet);
           setShowAppointmentForm(true);
           setShowPetsModal(false);
         }}
@@ -538,8 +540,10 @@ const ClientsPage = () => {
         onClose={() => {
           setShowAppointmentForm(false);
           setSelectedClient(null);
+          setSelectedPet(null);
         }}
         preselectedClient={selectedClient}
+        preselectedPet={selectedPet}
       />
     </div>
   );

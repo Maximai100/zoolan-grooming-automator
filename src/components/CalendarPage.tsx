@@ -113,6 +113,7 @@ const CalendarPage = () => {
       await addAppointment(appointmentData);
       setShowAppointmentForm(false);
       setSelectedSlot(null);
+      await refetch(); // Обновляем данные после добавления
       toast({
         title: 'Успешно',
         description: 'Запись добавлена',
@@ -131,6 +132,7 @@ const CalendarPage = () => {
       await updateAppointment(selectedAppointment.id, appointmentData);
       setShowAppointmentForm(false);
       setSelectedAppointment(null);
+      await refetch(); // Обновляем данные после изменения
       toast({
         title: 'Успешно',
         description: 'Запись обновлена',
@@ -150,6 +152,7 @@ const CalendarPage = () => {
         await deleteAppointment(selectedAppointment.id);
         setShowAppointmentDetails(false);
         setSelectedAppointment(null);
+        await refetch(); // Обновляем данные после удаления
         toast({
           title: 'Успешно',
           description: 'Запись удалена',
