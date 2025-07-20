@@ -13,6 +13,7 @@ import { ru } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useClients } from '@/hooks/useClients';
 import { useServices } from '@/hooks/useServices';
+import { useInventory } from '@/hooks/useInventory';
 
 interface PersonalOfferFormProps {
   onSubmit: (data: any) => void;
@@ -22,6 +23,7 @@ interface PersonalOfferFormProps {
 const PersonalOfferForm = ({ onSubmit, onCancel }: PersonalOfferFormProps) => {
   const { clients } = useClients();
   const { services } = useServices();
+  const { items: inventory } = useInventory();
   
   const [formData, setFormData] = useState({
     client_id: '',
@@ -228,6 +230,27 @@ const PersonalOfferForm = ({ onSubmit, onCancel }: PersonalOfferFormProps) => {
                       {service.name} - {service.price} ₽
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {formData.offer_type === 'free_product' && (
+            <div className="space-y-2">
+              <Label htmlFor="free_product_id">Бесплатный товар *</Label>
+              <Select
+                value={formData.free_product_id}
+                onValueChange={(value) => handleInputChange('free_product_id', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите товар" />
+                </SelectTrigger>
+                <SelectContent>
+                   {inventory.map((product) => (
+                     <SelectItem key={product.id} value={product.id}>
+                       {product.name} - {product.unit_price || product.unit_cost} ₽ (в наличии: {product.current_stock})
+                     </SelectItem>
+                   ))}
                 </SelectContent>
               </Select>
             </div>

@@ -11,7 +11,7 @@ import { useStaff } from '@/hooks/useStaff';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Users, Clock, CheckSquare, MessageCircle, Plus, 
-  Calendar, Timer, AlertCircle, Send, Play, Square
+  Calendar, Timer, AlertCircle, Send, Play, Square, Edit3
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';

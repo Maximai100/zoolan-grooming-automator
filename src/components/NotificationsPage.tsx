@@ -94,16 +94,37 @@ const NotificationsPage = () => {
     }
 
     try {
-      await addTemplate({
-        name: newTemplate.name,
-        type: newTemplate.type as any,
-        trigger_event: newTemplate.trigger_event as any,
-        subject: newTemplate.subject,
-        content: newTemplate.content,
-        variables: [],
-        is_active: newTemplate.is_active,
-        is_default: newTemplate.is_default
-      });
+      if (editingTemplate) {
+        await updateTemplate(editingTemplate.id, {
+          name: newTemplate.name,
+          type: newTemplate.type as any,
+          trigger_event: newTemplate.trigger_event as any,
+          subject: newTemplate.subject,
+          content: newTemplate.content,
+          is_active: newTemplate.is_active,
+          is_default: newTemplate.is_default
+        });
+        toast({
+          title: 'Шаблон обновлен',
+          description: 'Изменения сохранены успешно'
+        });
+      } else {
+        await addTemplate({
+          name: newTemplate.name,
+          type: newTemplate.type as any,
+          trigger_event: newTemplate.trigger_event as any,
+          subject: newTemplate.subject,
+          content: newTemplate.content,
+          variables: [],
+          is_active: newTemplate.is_active,
+          is_default: newTemplate.is_default
+        });
+        toast({
+          title: 'Шаблон создан',
+          description: 'Новый шаблон добавлен успешно'
+        });
+      }
+      
       setNewTemplate({
         name: '',
         type: 'sms',
@@ -113,10 +134,11 @@ const NotificationsPage = () => {
         is_active: true,
         is_default: false
       });
+      setEditingTemplate(null);
       setShowTemplateForm(false);
     } catch (error: any) {
       toast({
-        title: 'Ошибка создания',
+        title: editingTemplate ? 'Ошибка обновления' : 'Ошибка создания',
         description: error.message,
         variant: 'destructive'
       });
