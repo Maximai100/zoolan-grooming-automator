@@ -108,8 +108,12 @@ export default function AppLayout() {
         <aside className="hidden lg:block w-64 bg-card border-r border-border min-h-[calc(100vh-4rem)]">
           <nav className="p-4 space-y-2">
             {navigation.map((item) => {
-              const isActive = location.pathname === item.href ||
-                (item.href !== '/' && location.pathname.startsWith(item.href + '/'));
+              let isActive = false;
+              if (item.href === '/') {
+                isActive = location.pathname === '/';
+              } else {
+                isActive = location.pathname === item.href;
+              }
               return (
                 <Link
                   key={item.name}
@@ -134,8 +138,12 @@ export default function AppLayout() {
             <Card className="absolute left-0 top-16 bottom-0 w-64 bg-card border-r border-border">
               <nav className="p-4 space-y-2">
                 {navigation.map((item) => {
-                  const isActive = location.pathname === item.href ||
-                    (item.href !== '/' && location.pathname.startsWith(item.href + '/'));
+                  let isActive = false;
+                  if (item.href === '/') {
+                    isActive = location.pathname === '/';
+                  } else {
+                    isActive = location.pathname === item.href;
+                  }
                   return (
                     <Link
                       key={item.name}
