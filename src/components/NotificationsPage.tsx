@@ -665,9 +665,9 @@ const NotificationsPage = () => {
       <Dialog open={showTemplateForm} onOpenChange={setShowTemplateForm}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Создать шаблон</DialogTitle>
+            <DialogTitle>{editingTemplate ? 'Редактировать шаблон' : 'Создать шаблон'}</DialogTitle>
             <DialogDescription>
-              Создайте шаблон для автоматических или ручных уведомлений
+              {editingTemplate ? 'Внесите изменения в шаблон' : 'Создайте шаблон для автоматических или ручных уведомлений'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -743,7 +743,7 @@ const NotificationsPage = () => {
             
             <div className="flex space-x-2">
               <Button onClick={handleCreateTemplate} className="flex-1">
-                Создать шаблон
+                {editingTemplate ? 'Сохранить изменения' : 'Создать шаблон'}
               </Button>
               <Button variant="outline" onClick={() => setShowTemplateForm(false)}>
                 Отмена

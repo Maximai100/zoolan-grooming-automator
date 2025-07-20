@@ -419,6 +419,8 @@ const CalendarPage = () => {
           </DialogHeader>
           <AppointmentForm
             appointment={selectedAppointment}
+            selectedDate={selectedSlot?.start}
+            selectedTime={selectedSlot?.start ? moment(selectedSlot.start).format('HH:mm') : ''}
             open={showAppointmentForm}
             onClose={() => {
               setShowAppointmentForm(false);

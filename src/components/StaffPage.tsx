@@ -173,7 +173,10 @@ const StaffPage = () => {
             <Plus className="h-4 w-4 mr-2" />
             Добавить сотрудника
           </Button>
-          <Button onClick={refreshAllData} variant="outline">
+          <Button onClick={() => {
+            // Обновляем все данные с правильными ключами
+            window.location.reload();
+          }} variant="outline">
             Обновить
           </Button>
         </div>
