@@ -222,6 +222,51 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          resource_id: string | null
+          resource_type: string
+          salon_id: string
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          resource_id?: string | null
+          resource_type: string
+          salon_id: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          resource_id?: string | null
+          resource_type?: string
+          salon_id?: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       campaign_interactions: {
         Row: {
           campaign_id: string
@@ -769,6 +814,39 @@ export type Database = {
           period_end?: string
           period_start?: string
           salon_id?: string
+        }
+        Relationships: []
+      }
+      login_attempts: {
+        Row: {
+          created_at: string | null
+          email: string
+          failure_reason: string | null
+          id: string
+          ip_address: unknown
+          location_data: Json | null
+          success: boolean
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          failure_reason?: string | null
+          id?: string
+          ip_address: unknown
+          location_data?: Json | null
+          success: boolean
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown
+          location_data?: Json | null
+          success?: boolean
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -1803,6 +1881,45 @@ export type Database = {
           },
         ]
       }
+      security_sessions: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          is_active: boolean | null
+          last_activity_at: string | null
+          location_data: Json | null
+          session_token: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean | null
+          last_activity_at?: string | null
+          location_data?: Json | null
+          session_token: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean | null
+          last_activity_at?: string | null
+          location_data?: Json | null
+          session_token?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           category: string | null
@@ -2309,6 +2426,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_two_factor: {
+        Row: {
+          backup_codes: string[] | null
+          created_at: string | null
+          enabled_at: string | null
+          id: string
+          is_enabled: boolean | null
+          last_used_at: string | null
+          secret: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          backup_codes?: string[] | null
+          created_at?: string | null
+          enabled_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          last_used_at?: string | null
+          secret: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          backup_codes?: string[] | null
+          created_at?: string | null
+          enabled_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          last_used_at?: string | null
+          secret?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -2334,9 +2487,31 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_suspicious_activity: {
+        Args: { _user_id: string; _ip_address: string }
+        Returns: Json
+      }
+      cleanup_old_audit_logs: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       generate_revenue_forecast: {
         Args: { salon_uuid: string; forecast_days?: number }
         Returns: Json
+      }
+      log_audit_action: {
+        Args: {
+          _salon_id: string
+          _user_id: string
+          _action: string
+          _resource_type: string
+          _resource_id?: string
+          _old_values?: Json
+          _new_values?: Json
+          _ip_address?: string
+          _user_agent?: string
+        }
+        Returns: string
       }
       send_automatic_reminders: {
         Args: Record<PropertyKey, never>
