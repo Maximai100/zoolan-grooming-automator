@@ -48,27 +48,56 @@ const StaffForm = ({ open, onClose, onStaffAdded }: StaffFormProps) => {
         throw new Error('Не удалось определить салон');
       }
 
-      // Создаем пользователя через auth API (для демо-версии просто создаем профиль)
-      // В реальном приложении здесь должен быть вызов специальной функции создания пользователя
-      
-      // Генерируем временный ID для демонстрации
-      const newUserId = crypto.randomUUID();
-      
-      // Создаем профиль сотрудника
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([{
-          id: newUserId,
-          email: formData.email,
+      // Создаем auth пользователя через Supabase Auth Admin API
+      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+        email: formData.email,
+        password: formData.password,
+        email_confirm: true,
+        user_metadata: {
           first_name: formData.first_name,
           last_name: formData.last_name,
           phone: formData.phone,
-          role: formData.role,
-          salon_id: profile.salon_id,
-          is_active: true
-        }]);
+          role: formData.role
+        }
+      });
 
-      if (profileError) throw profileError;
+      if (authError) {
+        console.error('Auth error:', authError);
+        // Fallback для демо-режима - создаем профиль с временным ID
+        const newUserId = crypto.randomUUID();
+        
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([{
+            id: newUserId,
+            email: formData.email,
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            phone: formData.phone,
+            role: formData.role,
+            salon_id: profile.salon_id,
+            is_active: true
+          }]);
+        
+        if (profileError) throw profileError;
+      } else if (authUser.user) {
+        // Создаем профиль с реальным user ID
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([{
+            id: authUser.user.id,
+            email: formData.email,
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            phone: formData.phone,
+            role: formData.role,
+            salon_id: profile.salon_id,
+            is_active: true
+          }]);
+        
+        if (profileError) throw profileError;
+      }
+
 
       toast({
         title: 'Сотрудник добавлен',

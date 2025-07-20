@@ -50,6 +50,22 @@ export default function AppointmentFormDialog({
   // Получаем питомцев выбранного клиента
   const { pets } = usePets(selectedClientId);
 
+  // Устанавливаем предварительно выбранные значения
+  useEffect(() => {
+    if (preselectedClient?.id) {
+      setSelectedClientId(preselectedClient.id);
+    }
+    if (preselectedPet?.id) {
+      setSelectedPetId(preselectedPet.id);
+    }
+    if (preselectedDate) {
+      setDate(preselectedDate);
+    }
+    if (preselectedTime) {
+      setTime(preselectedTime);
+    }
+  }, [preselectedClient, preselectedPet, preselectedDate, preselectedTime]);
+
   // Обновляем цену при выборе услуги
   useEffect(() => {
     const selectedService = services.find(s => s.id === selectedServiceId);
@@ -106,12 +122,12 @@ export default function AppointmentFormDialog({
   };
 
   const resetForm = () => {
-    setSelectedClientId('');
-    setSelectedPetId('');
+    setSelectedClientId(preselectedClient?.id || '');
+    setSelectedPetId(preselectedPet?.id || '');
     setSelectedServiceId('');
     setSelectedGroomerId('');
-    setDate('');
-    setTime('');
+    setDate(preselectedDate || '');
+    setTime(preselectedTime || '');
     setDuration(60);
     setPrice(0);
     setNotes('');

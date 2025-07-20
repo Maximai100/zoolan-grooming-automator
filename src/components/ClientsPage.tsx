@@ -94,8 +94,9 @@ const ClientsPage = () => {
     }
   };
 
-  const handleScheduleAppointment = (client: any) => {
+  const handleScheduleAppointment = (client: any, pet?: any) => {
     setSelectedClient(client);
+    setSelectedPet(pet);
     setShowAppointmentForm(true);
   };
 
@@ -434,7 +435,7 @@ const ClientsPage = () => {
                   setSelectedClientId(client.id);
                   setShowPetsModal(true);
                 }}
-                onScheduleAppointment={handleScheduleAppointment}
+                onScheduleAppointment={(client) => handleScheduleAppointment(client)}
               />
             ))}
           </div>
