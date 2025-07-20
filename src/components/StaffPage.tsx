@@ -166,9 +166,32 @@ const StaffPage = () => {
           <h1 className="text-3xl font-bold text-foreground">Управление персоналом</h1>
           <p className="text-muted-foreground">Смены, задачи и внутренние коммуникации</p>
         </div>
-        <Button onClick={refreshAllData} variant="outline">
-          Обновить
-        </Button>
+        <div className="flex gap-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Добавить сотрудника
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Новый сотрудник</DialogTitle>
+                <DialogDescription>
+                  Добавить нового сотрудника в систему
+                </DialogDescription>
+              </DialogHeader>
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  Функция добавления сотрудников будет реализована позже
+                </p>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Button onClick={refreshAllData} variant="outline">
+            Обновить
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">

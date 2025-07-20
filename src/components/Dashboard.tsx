@@ -186,7 +186,11 @@ const Dashboard = () => {
                 {format(new Date(), 'EEEE, d MMMM', { locale: ru })}
               </CardDescription>
             </div>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.location.href = '/calendar'}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Добавить
             </Button>
@@ -223,7 +227,11 @@ const Dashboard = () => {
                 <p className="text-muted-foreground text-sm mb-4">
                   Создайте первую запись для начала работы
                 </p>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.location.href = '/calendar'}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Добавить запись
                 </Button>
@@ -278,7 +286,11 @@ const Dashboard = () => {
                 <p className="text-muted-foreground text-sm mb-4">
                   Добавьте первого клиента для начала работы
                 </p>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.location.href = '/clients'}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Добавить клиента
                 </Button>
@@ -298,21 +310,37 @@ const Dashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+            <Button 
+              variant="outline" 
+              className="h-20 flex flex-col items-center justify-center space-y-2"
+              onClick={() => window.location.href = '/calendar'}
+            >
               <Plus className="h-5 w-5" />
               <span className="text-sm">Новая запись</span>
             </Button>
-            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+            <Button 
+              variant="outline" 
+              className="h-20 flex flex-col items-center justify-center space-y-2"
+              onClick={() => window.location.href = '/clients'}
+            >
               <Users className="h-5 w-5" />
               <span className="text-sm">Добавить клиента</span>
             </Button>
-            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+            <Button 
+              variant="outline" 
+              className="h-20 flex flex-col items-center justify-center space-y-2"
+              onClick={() => window.location.href = '/notifications'}
+            >
               <Bell className="h-5 w-5" />
               <span className="text-sm">Отправить напоминание</span>
             </Button>
-            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+            <Button 
+              variant="outline" 
+              className="h-20 flex flex-col items-center justify-center space-y-2"
+              onClick={() => window.location.href = '/analytics'}
+            >
               <BarChart3 className="h-5 w-5" />
-              <span className="text-sm">Посмотреть аналитику</span>
+              <span className="text-sm">Посмотреть аналитика</span>
             </Button>
           </div>
         </CardContent>
