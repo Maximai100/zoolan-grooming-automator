@@ -37,7 +37,7 @@ const CalendarPage = () => {
   // Преобразование записей для календаря
   const calendarEvents = appointments.map(appointment => ({
     ...appointment,
-    title: `${appointment.clients?.first_name} ${appointment.clients?.last_name} - ${appointment.services?.name}`,
+    title: `${appointment.client?.first_name} ${appointment.client?.last_name} - ${appointment.service?.name}`,
     start: new Date(`${appointment.scheduled_date}T${appointment.scheduled_time}`),
     end: new Date(new Date(`${appointment.scheduled_date}T${appointment.scheduled_time}`).getTime() + appointment.duration_minutes * 60000),
     resource: appointment
@@ -294,13 +294,14 @@ const CalendarPage = () => {
           </DialogHeader>
           <AppointmentForm
             appointment={selectedAppointment}
-            selectedSlot={selectedSlot}
-            onSubmit={selectedAppointment ? handleUpdateAppointment : handleAddAppointment}
-            onCancel={() => {
+            open={showAppointmentForm}
+            onClose={() => {
               setShowAppointmentForm(false);
-              setSelectedSlot(null);
               setSelectedAppointment(null);
+              setSelectedSlot(null);
             }}
+            onSubmit={selectedAppointment ? handleUpdateAppointment : handleAddAppointment}
+            onDelete={selectedAppointment ? handleDeleteAppointment : undefined}
           />
         </DialogContent>
       </Dialog>

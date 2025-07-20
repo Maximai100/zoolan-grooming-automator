@@ -127,11 +127,38 @@ export const useServices = () => {
     fetchServices();
   }, []);
 
+  const deleteService = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('services')
+        .update({ is_active: false })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setServices(prev => prev.filter(service => service.id !== id));
+      toast({
+        title: 'Успешно',
+        description: 'Услуга удалена'
+      });
+      return { error: null };
+    } catch (error) {
+      console.error('Error deleting service:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось удалить услугу',
+        variant: 'destructive'
+      });
+      return { error };
+    }
+  };
+
   return {
     services,
     loading,
     addService,
     updateService,
+    deleteService,
     refetch: fetchServices
   };
 };

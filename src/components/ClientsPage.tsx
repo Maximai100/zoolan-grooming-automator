@@ -360,23 +360,24 @@ const ClientsPage = () => {
           </DialogHeader>
           <ClientForm
             client={editingClient}
-            onSubmit={editingClient ? handleUpdateClient : handleAddClient}
-            onCancel={() => {
+            open={showClientForm}
+            onClose={() => {
               setShowClientForm(false);
               setEditingClient(null);
             }}
+            onSubmit={editingClient ? handleUpdateClient : handleAddClient}
           />
         </DialogContent>
       </Dialog>
 
       {/* Модальное окно питомцев */}
       <PetsModal
-        isOpen={showPetsModal}
+        client={{id: selectedClientId}}
+        open={showPetsModal}
         onClose={() => {
           setShowPetsModal(false);
           setSelectedClientId(null);
         }}
-        clientId={selectedClientId}
       />
     </div>
   );

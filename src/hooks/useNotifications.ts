@@ -58,8 +58,18 @@ export const useNotifications = () => {
       const missingTypes = defaultSettings.filter(type => !existingTypes.includes(type));
       
       if (missingTypes.length > 0) {
+        // Get user's salon_id
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('salon_id')
+          .eq('id', (await supabase.auth.getUser()).data.user?.id)
+          .single();
+
+        if (!profile?.salon_id) return;
+
         const newSettings = missingTypes.map(type => ({
           type,
+          salon_id: profile.salon_id,
           is_enabled: false,
           daily_limit: 1000,
           monthly_limit: 30000
