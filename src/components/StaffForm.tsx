@@ -48,14 +48,27 @@ const StaffForm = ({ open, onClose, onStaffAdded }: StaffFormProps) => {
         throw new Error('Не удалось определить салон');
       }
 
-      // В демо-режиме создаем только профиль сотрудника
-      // В реальной системе здесь будет создание полноценного пользователя
-      const newUserId = crypto.randomUUID();
+      // Создаем полноценного пользователя через Admin API
+      const { data: newUser, error: userError } = await supabase.auth.admin.createUser({
+        email: formData.email,
+        password: formData.password,
+        email_confirm: true,
+        user_metadata: {
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          phone: formData.phone,
+          role: formData.role,
+          salon_id: profile.salon_id
+        }
+      });
       
+      if (userError) throw userError;
+      
+      // Создаем профиль сотрудника
       const { error: profileError } = await supabase
         .from('profiles')
         .insert([{
-          id: newUserId,
+          id: newUser.user.id,
           email: formData.email,
           first_name: formData.first_name,
           last_name: formData.last_name,
@@ -66,6 +79,17 @@ const StaffForm = ({ open, onClose, onStaffAdded }: StaffFormProps) => {
         }]);
       
       if (profileError) throw profileError;
+
+      // Отправляем приглашение через email
+      await supabase.functions.invoke('send-notifications', {
+        body: {
+          type: 'email',
+          recipient: formData.email,
+          subject: 'Добро пожаловать в команду!',
+          content: `Здравствуйте, ${formData.first_name}!\n\nВы добавлены в команду груминг-салона.\n\nВаши данные для входа:\nEmail: ${formData.email}\nВременный пароль: ${formData.password}\n\nРекомендуем сменить пароль при первом входе.`,
+          salon_id: profile.salon_id
+        }
+      });
 
 
       toast({
@@ -227,8 +251,8 @@ const StaffForm = ({ open, onClose, onStaffAdded }: StaffFormProps) => {
         </form>
 
         <div className="text-xs text-muted-foreground bg-muted/30 p-3 rounded-lg">
-          <strong>Демо-режим:</strong> В реальной системе здесь будет полноценная регистрация 
-          пользователя с отправкой приглашения по email.
+          <strong>Автоматически:</strong> Создаётся учётная запись пользователя и 
+          отправляется email-приглашение с данными для входа.
         </div>
       </DialogContent>
     </Dialog>

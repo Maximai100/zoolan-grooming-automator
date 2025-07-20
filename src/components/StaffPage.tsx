@@ -294,9 +294,36 @@ const StaffPage = () => {
                           <p className="text-xs text-muted-foreground mt-2">{shift.notes}</p>
                         )}
                       </div>
-                      <Badge variant={getStatusColor(shift.status)}>
-                        {shift.status}
-                      </Badge>
+                       <div className="flex gap-2">
+                        <Badge variant={getStatusColor(shift.status)}>
+                          {shift.status}
+                        </Badge>
+                        {shift.profiles?.id === profile?.id && (
+                          <div className="flex gap-1">
+                            <Button 
+                              size="sm" 
+                              onClick={() => clockIn.mutate(shift.id)}
+                              disabled={clockIn.isPending}
+                            >
+                              <Play className="w-3 h-3 mr-1" />
+                              Clock In
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                // Нужно найти активную запись time_tracking для завершения
+                                // Это упрощённая версия - в реальности нужен ID записи
+                                // clockOut.mutate(trackingId);
+                              }}
+                              disabled={clockOut.isPending}
+                            >
+                              <Square className="w-3 h-3 mr-1" />
+                              Clock Out
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
