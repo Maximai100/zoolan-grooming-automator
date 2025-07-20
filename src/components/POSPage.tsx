@@ -155,7 +155,7 @@ export default function POSPage() {
                       </div>
                       <div className="text-right">
                         <p className="font-semibold">{service.price} ₽</p>
-                        <Button size="sm" className="mt-1">
+                        <Button size="sm" className="mt-1 bg-gradient-primary text-white">
                           <Plus className="h-3 w-3" />
                         </Button>
                       </div>
@@ -196,6 +196,7 @@ export default function POSPage() {
                           size="sm"
                           variant="outline"
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          className="bg-card text-foreground border-input"
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
@@ -204,6 +205,7 @@ export default function POSPage() {
                           size="sm"
                           variant="outline"
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          className="bg-card text-foreground border-input"
                         >
                           <Plus className="h-3 w-3" />
                         </Button>
