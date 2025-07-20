@@ -1685,6 +1685,68 @@ export type Database = {
         }
         Relationships: []
       }
+      salon_subscriptions: {
+        Row: {
+          auto_renew: boolean | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          last_payment_date: string | null
+          next_payment_date: string | null
+          payment_method: string | null
+          plan_id: string
+          salon_id: string
+          started_at: string | null
+          status: string
+          trial_ends_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          auto_renew?: boolean | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          last_payment_date?: string | null
+          next_payment_date?: string | null
+          payment_method?: string | null
+          plan_id: string
+          salon_id: string
+          started_at?: string | null
+          status?: string
+          trial_ends_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          auto_renew?: boolean | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          last_payment_date?: string | null
+          next_payment_date?: string | null
+          payment_method?: string | null
+          plan_id?: string
+          salon_id?: string
+          started_at?: string | null
+          status?: string
+          trial_ends_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salon_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       salons: {
         Row: {
           address: string | null
@@ -2100,6 +2162,99 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          max_appointments_per_month: number | null
+          max_clients: number | null
+          max_locations: number | null
+          max_notifications_per_month: number | null
+          max_staff_members: number | null
+          name: string
+          price_monthly: number
+          price_yearly: number
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_appointments_per_month?: number | null
+          max_clients?: number | null
+          max_locations?: number | null
+          max_notifications_per_month?: number | null
+          max_staff_members?: number | null
+          name: string
+          price_monthly?: number
+          price_yearly?: number
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_appointments_per_month?: number | null
+          max_clients?: number | null
+          max_locations?: number | null
+          max_notifications_per_month?: number | null
+          max_staff_members?: number | null
+          name?: string
+          price_monthly?: number
+          price_yearly?: number
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      subscription_usage: {
+        Row: {
+          appointments_count: number | null
+          clients_count: number | null
+          created_at: string | null
+          id: string
+          notifications_sent: number | null
+          period_end: string
+          period_start: string
+          salon_id: string
+          storage_used_mb: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          appointments_count?: number | null
+          clients_count?: number | null
+          created_at?: string | null
+          id?: string
+          notifications_sent?: number | null
+          period_end: string
+          period_start: string
+          salon_id: string
+          storage_used_mb?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          appointments_count?: number | null
+          clients_count?: number | null
+          created_at?: string | null
+          id?: string
+          notifications_sent?: number | null
+          period_end?: string
+          period_start?: string
+          salon_id?: string
+          storage_used_mb?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       time_tracking: {
         Row: {
           break_end: string | null
@@ -2170,6 +2325,14 @@ export type Database = {
           period_end_date: string
         }
         Returns: Json
+      }
+      check_subscription_limit: {
+        Args: {
+          _salon_id: string
+          _limit_type: string
+          _current_count?: number
+        }
+        Returns: boolean
       }
       generate_revenue_forecast: {
         Args: { salon_uuid: string; forecast_days?: number }
