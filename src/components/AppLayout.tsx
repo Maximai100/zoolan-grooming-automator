@@ -49,6 +49,12 @@ export default function AppLayout() {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
+  const isActive = (href: string) => {
+    return href !== '/'
+      ? location.pathname.startsWith(href)
+      : location.pathname === '/';
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -107,28 +113,20 @@ export default function AppLayout() {
         {/* Desktop Sidebar */}
         <aside className="hidden lg:block w-64 bg-card border-r border-border min-h-[calc(100vh-4rem)]">
           <nav className="p-4 space-y-2">
-            {navigation.map((item) => {
-              let isActive = false;
-              if (item.href === '/') {
-                isActive = location.pathname === '/';
-              } else {
-                isActive = location.pathname === item.href;
-              }
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                  }`}
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                  isActive(item.href)
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                }`}
+              >
+                <item.icon className="h-5 w-5" />
+                <span>{item.name}</span>
+              </Link>
+            ))}
           </nav>
         </aside>
 
@@ -137,28 +135,20 @@ export default function AppLayout() {
           <div className="lg:hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
             <Card className="absolute left-0 top-16 bottom-0 w-64 bg-card border-r border-border">
               <nav className="p-4 space-y-2">
-                {navigation.map((item) => {
-                  let isActive = false;
-                  if (item.href === '/') {
-                    isActive = location.pathname === '/';
-                  } else {
-                    isActive = location.pathname === item.href;
-                  }
-                  return (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                        isActive
-                          ? 'bg-primary text-primary-foreground'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                      }`}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.name}</span>
-                    </Link>
-                  );
-                })}
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                      isActive(item.href)
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.name}</span>
+                  </Link>
+                ))}
               </nav>
             </Card>
           </div>
