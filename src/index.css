@@ -37,6 +37,7 @@ All colors MUST be HSL.
     --input: 214.3 31.8% 91.4%;
     --ring: 158 64% 52%;
 
+    --gradient-primary: linear-gradient(135deg, hsl(158 64% 52%), hsl(158 64% 65%));
     --hero-gradient: linear-gradient(135deg, hsl(158 64% 52%), hsl(158 64% 65%));
     --card-gradient: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 40% 99%));
     --success-gradient: linear-gradient(135deg, hsl(158 64% 52%), hsl(142 76% 36%));

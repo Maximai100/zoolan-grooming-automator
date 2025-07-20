@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import StaffForm from './StaffForm';
 
 const StaffPage = () => {
   const { 
@@ -26,6 +27,7 @@ const StaffPage = () => {
   const { toast } = useToast();
 
   const [activeTab, setActiveTab] = useState("shifts");
+  const [showStaffForm, setShowStaffForm] = useState(false);
   const [newShift, setNewShift] = useState({
     staff_id: '',
     shift_date: '',
@@ -167,27 +169,10 @@ const StaffPage = () => {
           <p className="text-muted-foreground">Смены, задачи и внутренние коммуникации</p>
         </div>
         <div className="flex gap-2">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Добавить сотрудника
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Новый сотрудник</DialogTitle>
-                <DialogDescription>
-                  Добавить нового сотрудника в систему
-                </DialogDescription>
-              </DialogHeader>
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">
-                  Функция добавления сотрудников будет реализована позже
-                </p>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => setShowStaffForm(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Добавить сотрудника
+          </Button>
           <Button onClick={refreshAllData} variant="outline">
             Обновить
           </Button>
@@ -596,6 +581,13 @@ const StaffPage = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Форма добавления сотрудника */}
+      <StaffForm 
+        open={showStaffForm}
+        onClose={() => setShowStaffForm(false)}
+        onStaffAdded={refreshAllData}
+      />
     </div>
   );
 };

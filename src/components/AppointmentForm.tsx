@@ -245,7 +245,7 @@ export default function AppointmentForm({
                         setShowCalendar(false);
                       }
                     }}
-                    disabled={(date) => date < new Date()}
+                    disabled={(date) => date < new Date(Date.now() - 24 * 60 * 60 * 1000)} // Разрешить выбор сегодня
                     initialFocus
                     className={cn("p-3 pointer-events-auto")}
                   />

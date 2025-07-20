@@ -46,7 +46,7 @@ const CalendarPage = () => {
   // Преобразование записей для календаря
   const calendarEvents = appointments.map(appointment => ({
     ...appointment,
-    title: `${appointment.client?.first_name} ${appointment.client?.last_name} - ${appointment.service?.name}`,
+    title: `${appointment.clients?.first_name || appointment.client?.first_name} ${appointment.clients?.last_name || appointment.client?.last_name} - ${appointment.services?.name || appointment.service?.name}`,
     start: new Date(`${appointment.scheduled_date}T${appointment.scheduled_time}`),
     end: new Date(new Date(`${appointment.scheduled_date}T${appointment.scheduled_time}`).getTime() + appointment.duration_minutes * 60000),
     resource: appointment
@@ -207,6 +207,22 @@ const CalendarPage = () => {
     pending: appointments.filter(a => ['scheduled', 'confirmed'].includes(a.status)).length,
     cancelled: appointments.filter(a => ['cancelled', 'no_show'].includes(a.status)).length
   };
+
+  useEffect(() => {
+    const fetchUserSalon = async () => {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('salon_id')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+      
+      if (profile?.salon_id) {
+        setUserSalonId(profile.salon_id);
+      }
+    };
+    
+    fetchUserSalon();
+  }, []);
 
   if (loading) {
     return (
@@ -427,10 +443,10 @@ const CalendarPage = () => {
                 </Badge>
               </div>
               
-              <div className="space-y-2">
-                <div><strong>Клиент:</strong> {selectedAppointment.clients?.first_name} {selectedAppointment.clients?.last_name}</div>
-                <div><strong>Питомец:</strong> {selectedAppointment.pets?.name}</div>
-                <div><strong>Услуга:</strong> {selectedAppointment.services?.name}</div>
+               <div className="space-y-2">
+                 <div><strong>Клиент:</strong> {selectedAppointment.clients?.first_name || selectedAppointment.client?.first_name} {selectedAppointment.clients?.last_name || selectedAppointment.client?.last_name}</div>
+                 <div><strong>Питомец:</strong> {selectedAppointment.pets?.name || selectedAppointment.pet?.name}</div>
+                 <div><strong>Услуга:</strong> {selectedAppointment.services?.name || selectedAppointment.service?.name}</div>
                 <div><strong>Дата:</strong> {format(new Date(selectedAppointment.scheduled_date), 'dd.MM.yyyy', { locale: ru })}</div>
                 <div><strong>Время:</strong> {selectedAppointment.scheduled_time}</div>
                 <div><strong>Длительность:</strong> {selectedAppointment.duration_minutes} мин</div>

@@ -21,6 +21,24 @@ export interface Appointment {
   created_at: string;
   updated_at: string;
   // Joined data
+  clients?: {
+    first_name: string;
+    last_name: string;
+    phone: string;
+  };
+  pets?: {
+    name: string;
+    breed?: string;
+  };
+  services?: {
+    name: string;
+    category?: string;
+  };
+  profiles?: {
+    first_name: string;
+    last_name: string;
+  };
+  // Legacy compatibility
   client?: {
     first_name: string;
     last_name: string;
@@ -62,10 +80,10 @@ export const useAppointments = (date?: Date) => {
         .from('appointments')
         .select(`
           *,
-          client:clients(first_name, last_name, phone),
-          pet:pets(name, breed),
-          service:services(name, category),
-          groomer:profiles(first_name, last_name)
+          clients!inner(first_name, last_name, phone),
+          pets!inner(name, breed),
+          services!inner(name, category),
+          profiles(first_name, last_name)
         `)
         .eq('salon_id', profile.salon_id)
         .order('scheduled_date', { ascending: true })
@@ -92,7 +110,7 @@ export const useAppointments = (date?: Date) => {
     }
   };
 
-  const addAppointment = async (appointmentData: Omit<Appointment, 'id' | 'salon_id' | 'created_at' | 'updated_at' | 'client' | 'pet' | 'service' | 'groomer'>) => {
+  const addAppointment = async (appointmentData: Omit<Appointment, 'id' | 'salon_id' | 'created_at' | 'updated_at' | 'clients' | 'pets' | 'services' | 'profiles' | 'client' | 'pet' | 'service' | 'groomer'>) => {
     try {
       // Get user's salon_id from profile
       const { data: profile } = await supabase
@@ -110,10 +128,10 @@ export const useAppointments = (date?: Date) => {
         .insert([{ ...appointmentData, salon_id: profile.salon_id }])
         .select(`
           *,
-          client:clients(first_name, last_name, phone),
-          pet:pets(name, breed),
-          service:services(name, category),
-          groomer:profiles(first_name, last_name)
+          clients!inner(first_name, last_name, phone),
+          pets!inner(name, breed),
+          services!inner(name, category),
+          profiles(first_name, last_name)
         `)
         .single();
 
@@ -144,10 +162,10 @@ export const useAppointments = (date?: Date) => {
         .eq('id', id)
         .select(`
           *,
-          client:clients(first_name, last_name, phone),
-          pet:pets(name, breed),
-          service:services(name, category),
-          groomer:profiles(first_name, last_name)
+          clients!inner(first_name, last_name, phone),
+          pets!inner(name, breed),
+          services!inner(name, category),
+          profiles(first_name, last_name)
         `)
         .single();
 
