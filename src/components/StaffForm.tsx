@@ -85,16 +85,21 @@ const StaffForm = ({ open, onClose, onStaffAdded }: StaffFormProps) => {
       
       if (profileError) throw profileError;
 
-      // Отправляем приглашение через email
-      await supabase.functions.invoke('send-notifications', {
-        body: {
-          type: 'email',
-          recipient: formData.email,
-          subject: 'Добро пожаловать в команду!',
-          content: `Здравствуйте, ${formData.first_name}!\n\nВы добавлены в команду груминг-салона.\n\nВаши данные для входа:\nEmail: ${formData.email}\nВременный пароль: ${formData.password}\n\nРекомендуем сменить пароль при первом входе.`,
-          salon_id: profile.salon_id
-        }
-      });
+      // Пытаемся отправить приглашение через email (может быть отключено)
+      try {
+        await supabase.functions.invoke('send-notifications', {
+          body: {
+            type: 'email',
+            recipient: formData.email,
+            subject: 'Добро пожаловать в команду!',
+            content: `Здравствуйте, ${formData.first_name}!\n\nВы добавлены в команду груминг-салона.\n\nВаши данные для входа:\nEmail: ${formData.email}\nВременный пароль: ${formData.password}\n\nРекомендуем сменить пароль при первом входе.`,
+            salon_id: profile.salon_id
+          }
+        });
+      } catch (emailError) {
+        console.warn('Не удалось отправить email-приглашение:', emailError);
+        // Не прерываем процесс, если email не отправился
+      }
 
 
       toast({
