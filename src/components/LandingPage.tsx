@@ -112,72 +112,75 @@ const LandingPage = () => {
             <div className="w-8 h-8 bg-hero-gradient rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">З</span>
             </div>
-            <span className="text-xl font-bold text-foreground">Зооплан</span>
+            <span className="text-lg sm:text-xl font-bold text-foreground">Зооплан</span>
           </div>
-          <nav className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Функции</a>
-            <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">Тарифы</a>
-            <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors">Отзывы</a>
-            <Button variant="outline">Войти</Button>
-            <Button variant="hero">Попробовать бесплатно</Button>
+          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
+            <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors text-sm lg:text-base">Функции</a>
+            <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors text-sm lg:text-base">Тарифы</a>
+            <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors text-sm lg:text-base">Отзывы</a>
+            <Button variant="outline" size="sm" className="hidden lg:inline-flex">Войти</Button>
+            <Button variant="hero" size="sm">Попробовать бесплатно</Button>
           </nav>
+          <div className="md:hidden">
+            <Button variant="hero" size="sm" className="text-xs px-3">Попробовать</Button>
+          </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-20 lg:py-32 overflow-hidden">
+      <section className="relative py-12 sm:py-20 lg:py-32 overflow-hidden">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            <div className="space-y-6 sm:space-y-8 text-center lg:text-left">
               <div className="space-y-4">
-                <Badge className="bg-primary/10 text-primary border-primary/20">
+                <Badge className="bg-primary/10 text-primary border-primary/20 text-xs sm:text-sm">
                   🚀 Автопилот для салона груминга
                 </Badge>
-                <h1 className="text-4xl lg:text-6xl font-bold text-foreground leading-tight">
+                <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-foreground leading-tight">
                   Управляйте салоном груминга
                   <span className="bg-hero-gradient bg-clip-text text-transparent"> на автопилоте</span>
                 </h1>
-                <p className="text-xl text-muted-foreground max-w-2xl">
+                <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0">
                   AI-платформа, которая автоматизирует записи, напоминания и ведение клиентской базы. 
                   Сосредоточьтесь на уходе за питомцами, а не на бумажной работе.
                 </p>
               </div>
               
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button variant="hero" size="lg" className="text-lg px-8 py-3">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
+                <Button variant="hero" size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-3 h-12 sm:h-auto">
                   Начать бесплатный период
                 </Button>
-                <Button variant="outline" size="lg" className="text-lg px-8 py-3">
+                <Button variant="outline" size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-3 h-12 sm:h-auto">
                   Смотреть демо
                 </Button>
               </div>
 
-              <div className="flex items-center space-x-8 pt-4">
+              <div className="flex items-center justify-center lg:justify-start space-x-4 sm:space-x-8 pt-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-foreground">1300+</div>
-                  <div className="text-sm text-muted-foreground">Салонов</div>
+                  <div className="text-xl sm:text-2xl font-bold text-foreground">1300+</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Салонов</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-foreground">25%</div>
-                  <div className="text-sm text-muted-foreground">Меньше пропусков</div>
+                  <div className="text-xl sm:text-2xl font-bold text-foreground">25%</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Меньше пропусков</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-foreground">10 ч</div>
-                  <div className="text-sm text-muted-foreground">Экономия в неделю</div>
+                  <div className="text-xl sm:text-2xl font-bold text-foreground">10 ч</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Экономия в неделю</div>
                 </div>
               </div>
             </div>
             
-            <div className="relative">
+            <div className="relative mt-8 lg:mt-0">
               <img 
                 src={heroImage} 
                 alt="Профессиональный груминг" 
                 className="rounded-2xl shadow-2xl w-full animate-float"
               />
-              <div className="absolute -bottom-6 -left-6 bg-white rounded-xl p-4 shadow-glow animate-bounce">
+              <div className="absolute -bottom-4 sm:-bottom-6 -left-4 sm:-left-6 bg-white rounded-xl p-3 sm:p-4 shadow-glow animate-bounce">
                 <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5 text-primary" />
-                  <span className="text-sm font-medium">Запись подтверждена</span>
+                  <CheckCircle className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
+                  <span className="text-xs sm:text-sm font-medium">Запись подтверждена</span>
                 </div>
               </div>
             </div>
@@ -186,18 +189,18 @@ const LandingPage = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-muted/30">
+      <section id="features" className="py-12 sm:py-20 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-3xl lg:text-5xl font-bold text-foreground">
+          <div className="text-center space-y-4 mb-8 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-foreground">
               Все инструменты в одном месте
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto">
               Зооплан объединяет планирование, CRM и аналитику специально для салонов груминга
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-12">
+          <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
             {features.map((feature, index) => (
               <Card key={index} className="group hover:shadow-glow transition-all duration-300 hover:scale-105 bg-card-gradient border-primary/10">
                 <CardHeader>
@@ -241,7 +244,7 @@ const LandingPage = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
             {pricingPlans.map((plan, index) => (
               <Card key={index} className={`relative ${plan.popular ? 'ring-2 ring-primary scale-105 shadow-glow' : ''} hover:shadow-card transition-all duration-300`}>
                 {plan.popular && (
@@ -291,7 +294,7 @@ const LandingPage = () => {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {testimonials.map((testimonial, index) => (
               <Card key={index} className="bg-card-gradient hover:shadow-glow transition-all duration-300 hover:scale-105">
                 <CardHeader>
@@ -335,7 +338,7 @@ const LandingPage = () => {
       {/* Footer */}
       <footer className="py-12 border-t bg-background">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-hero-gradient rounded-lg flex items-center justify-center">

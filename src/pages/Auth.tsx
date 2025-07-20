@@ -72,29 +72,29 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden">
       {/* Background decorations */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-white/10 rounded-full blur-xl animate-float"></div>
-        <div className="absolute bottom-20 right-10 w-24 h-24 bg-white/5 rounded-full blur-xl animate-float" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/3 w-16 h-16 bg-white/5 rounded-full blur-xl animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-20 left-4 sm:left-10 w-24 sm:w-32 h-24 sm:h-32 bg-white/10 rounded-full blur-xl animate-float"></div>
+        <div className="absolute bottom-20 right-4 sm:right-10 w-16 sm:w-24 h-16 sm:h-24 bg-white/5 rounded-full blur-xl animate-float" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/4 sm:left-1/3 w-12 sm:w-16 h-12 sm:h-16 bg-white/5 rounded-full blur-xl animate-float" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <div className="w-full max-w-md relative z-10 animate-fade-in">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-glow animate-bounce-in">
-              <Scissors className="h-7 w-7 text-primary" />
+      <div className="w-full max-w-md sm:max-w-lg relative z-10 animate-fade-in">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <div className="w-12 sm:w-14 h-12 sm:h-14 bg-white rounded-xl flex items-center justify-center shadow-glow animate-bounce-in">
+              <Scissors className="h-6 sm:h-7 w-6 sm:w-7 text-primary" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-white gradient-text-white">Зооплан</h1>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white gradient-text-white">Зооплан</h1>
               <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-white/50 to-transparent mt-1"></div>
             </div>
           </div>
-          <p className="text-white/90 text-lg font-medium">
+          <p className="text-white/90 text-base sm:text-lg font-medium">
             Профессиональная CRM для салонов груминга
           </p>
-          <p className="text-white/70 text-sm mt-2">
+          <p className="text-white/70 text-sm sm:text-base mt-2">
             Управляйте записями, клиентами и бизнесом эффективно
           </p>
         </div>
@@ -171,7 +171,7 @@ export default function Auth() {
 
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="firstName">Имя</Label>
                       <Input

@@ -147,7 +147,7 @@ export default function AppLayout() {
                     }`}>
                       <item.icon className="h-4 w-4" />
                     </div>
-                    <span className="font-medium">{item.name}</span>
+                    <span className="font-medium text-sm lg:text-base">{item.name}</span>
                   </div>
                   {isActive(item.href) && (
                     <div className="w-1 h-1 bg-primary-foreground rounded-full animate-bounce-in"></div>
@@ -161,26 +161,26 @@ export default function AppLayout() {
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="lg:hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm animate-fade-in">
-            <Card className="absolute left-0 top-16 bottom-0 w-64 bg-card/95 backdrop-blur-sm border-r border-border/50 animate-fade-in-left">
+            <Card className="absolute left-0 top-16 bottom-0 w-72 sm:w-80 bg-card/95 backdrop-blur-sm border-r border-border/50 animate-fade-in-left">
               <div className="p-4">
                 <nav className="space-y-1">
                   {navigation.map((item, index) => (
                     <Link
                       key={item.name}
                       to={item.href}
-                      className={`nav-item group animate-slide-up ${isActive(item.href) ? 'active' : ''}`}
+                      className={`nav-item group animate-slide-up ${isActive(item.href) ? 'active' : ''} p-3 rounded-lg flex items-center justify-between hover:bg-accent/50 transition-colors`}
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className={`p-1.5 rounded-md transition-colors ${
-                          isActive(item.href) ? 'bg-primary-foreground/20' : 'group-hover:bg-accent/50'
+                        <div className={`p-2 rounded-md transition-colors ${
+                          isActive(item.href) ? 'bg-primary text-primary-foreground' : 'bg-muted group-hover:bg-accent'
                         }`}>
-                          <item.icon className="h-4 w-4" />
+                          <item.icon className="h-5 w-5" />
                         </div>
-                        <span className="font-medium">{item.name}</span>
+                        <span className="font-medium text-base">{item.name}</span>
                       </div>
                       {isActive(item.href) && (
-                        <div className="w-1 h-1 bg-primary-foreground rounded-full animate-bounce-in"></div>
+                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce-in"></div>
                       )}
                     </Link>
                   ))}
@@ -191,7 +191,7 @@ export default function AppLayout() {
         )}
 
         {/* Main Content */}
-        <main className="flex-1 lg:ml-64 p-6 lg:p-8 h-full overflow-y-auto">
+        <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 h-full overflow-y-auto">
           <Outlet />
         </main>
       </div>
