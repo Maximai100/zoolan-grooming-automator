@@ -28,6 +28,10 @@ import MultiLocationPage from "./components/MultiLocationPage";
 import APIManagementPage from "./components/APIManagementPage";
 import SecurityPage from "./components/SecurityPage";
 import MessengersPage from "./components/MessengersPage";
+import SuperAdminLayout from "./components/SuperAdminLayout";
+import SuperAdminDashboard from "./components/SuperAdminDashboard";
+import SuperAdminSalons from "./components/SuperAdminSalons";
+import SuperAdminSubscriptions from "./components/SuperAdminSubscriptions";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +64,14 @@ const App = () => (
               <Route path="security" element={<SecurityPage />} />
               <Route path="messengers" element={<MessengersPage />} />
               <Route path="settings" element={<SettingsPage />} />
+            </Route>
+          </Route>
+          {/* Super Admin Routes */}
+          <Route path="/super-admin" element={<ProtectedRoute />}>
+            <Route element={<SuperAdminLayout />}>
+              <Route index element={<SuperAdminDashboard />} />
+              <Route path="salons" element={<SuperAdminSalons />} />
+              <Route path="subscriptions" element={<SuperAdminSubscriptions />} />
             </Route>
           </Route>
           <Route path="*" element={<NotFound />} />
