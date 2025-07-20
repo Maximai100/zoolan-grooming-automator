@@ -5,6 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Index from "./pages/Index";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
@@ -33,52 +34,71 @@ import SuperAdminDashboard from "./components/SuperAdminDashboard";
 import SuperAdminSalons from "./components/SuperAdminSalons";
 import SuperAdminSubscriptions from "./components/SuperAdminSubscriptions";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 минут
+      gcTime: 10 * 60 * 1000, // 10 минут
+      refetchOnWindowFocus: false,
+      retry: (failureCount, error) => {
+        if (error.message?.includes('JWT') || error.message?.includes('auth')) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/landing" element={<Index />} />
-          <Route path="/" element={<ProtectedRoute />}>
-            <Route element={<AppLayout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="clients" element={<ClientsPage />} />
-              <Route path="calendar" element={<CalendarPage />} />
-              <Route path="pos" element={<POSPage />} />
-              <Route path="notifications" element={<NotificationsPage />} />
-              <Route path="analytics" element={<AnalyticsPage />} />
-              <Route path="staff" element={<StaffPage />} />
-              <Route path="services" element={<ServicesPage />} />
-              <Route path="inventory" element={<InventoryPage />} />
-              <Route path="loyalty" element={<LoyaltyPage />} />
-              <Route path="subscription" element={<SubscriptionPage />} />
-              <Route path="exports" element={<DataExportPage />} />
-              <Route path="help" element={<HelpCenterPage />} />
-              <Route path="locations" element={<MultiLocationPage />} />
-              <Route path="api" element={<APIManagementPage />} />
-              <Route path="security" element={<SecurityPage />} />
-              <Route path="messengers" element={<MessengersPage />} />
-              <Route path="settings" element={<SettingsPage />} />
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/landing" element={<Index />} />
+            <Route path="/" element={<ProtectedRoute />}>
+              <Route element={<ErrorBoundary><AppLayout /></ErrorBoundary>}>
+                <Route index element={<Dashboard />} />
+                <Route path="clients" element={<ClientsPage />} />
+                <Route path="calendar" element={<CalendarPage />} />
+                <Route path="pos" element={<POSPage />} />
+                <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="analytics" element={<AnalyticsPage />} />
+                <Route path="staff" element={<StaffPage />} />
+                <Route path="services" element={<ServicesPage />} />
+                <Route path="inventory" element={<InventoryPage />} />
+                <Route path="loyalty" element={<LoyaltyPage />} />
+                <Route path="subscription" element={<SubscriptionPage />} />
+                <Route path="exports" element={<DataExportPage />} />
+                <Route path="help" element={<HelpCenterPage />} />
+                <Route path="locations" element={<MultiLocationPage />} />
+                <Route path="api" element={<APIManagementPage />} />
+                <Route path="security" element={<SecurityPage />} />
+                <Route path="messengers" element={<MessengersPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+              </Route>
             </Route>
-          </Route>
-          {/* Super Admin Routes */}
-          <Route path="/super-admin" element={<ProtectedRoute />}>
-            <Route element={<SuperAdminLayout />}>
-              <Route index element={<SuperAdminDashboard />} />
-              <Route path="salons" element={<SuperAdminSalons />} />
-              <Route path="subscriptions" element={<SuperAdminSubscriptions />} />
+            {/* Super Admin Routes */}
+            <Route path="/super-admin" element={<ProtectedRoute />}>
+              <Route element={<ErrorBoundary><SuperAdminLayout /></ErrorBoundary>}>
+                <Route index element={<SuperAdminDashboard />} />
+                <Route path="salons" element={<SuperAdminSalons />} />
+                <Route path="subscriptions" element={<SuperAdminSubscriptions />} />
+              </Route>
             </Route>
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
