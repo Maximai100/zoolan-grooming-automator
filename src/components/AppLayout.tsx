@@ -123,20 +123,10 @@ export default function AppLayout() {
         </div>
       </header>
 
-      <div className="flex">
+      <div className="flex h-[calc(100vh-4rem)]">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:block w-64 bg-card/50 backdrop-blur-sm border-r border-border/50 min-h-[calc(100vh-4rem)]">
-          <div className="p-4">
-            <div className="mb-6 p-3 rounded-lg bg-gradient-primary/10 border border-primary/20">
-              <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                <Heart className="h-4 w-4" />
-                Активный салон
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {profile?.salon_id ? 'Салон груминга "Лапки"' : 'Не выбран'}
-              </div>
-            </div>
-            
+        <aside className="hidden lg:block w-64 bg-card/50 backdrop-blur-sm border-r border-border/50 h-full fixed left-0 top-16 z-30">
+          <div className="p-4 h-full overflow-y-auto">
             <nav className="space-y-1">
               {navigation.map((item, index) => (
                 <Link
@@ -167,16 +157,6 @@ export default function AppLayout() {
           <div className="lg:hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm animate-fade-in">
             <Card className="absolute left-0 top-16 bottom-0 w-64 bg-card/95 backdrop-blur-sm border-r border-border/50 animate-fade-in-left">
               <div className="p-4">
-                <div className="mb-6 p-3 rounded-lg bg-gradient-primary/10 border border-primary/20">
-                  <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                    <Heart className="h-4 w-4" />
-                    Активный салон
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {profile?.salon_id ? 'Салон груминга "Лапки"' : 'Не выбран'}
-                  </div>
-                </div>
-                
                 <nav className="space-y-1">
                   {navigation.map((item, index) => (
                     <Link
@@ -205,7 +185,7 @@ export default function AppLayout() {
         )}
 
         {/* Main Content */}
-        <main className="flex-1 p-6 lg:p-8 min-h-[calc(100vh-4rem)]">
+        <main className="flex-1 lg:ml-64 p-6 lg:p-8 h-full overflow-y-auto">
           <Outlet />
         </main>
       </div>
