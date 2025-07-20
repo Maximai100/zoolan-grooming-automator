@@ -147,18 +147,35 @@ export default function SettingsPage() {
 
   const handleSaveBusiness = async () => {
     try {
-      // Сохраняем бизнес настройки в localStorage пока нет таблицы
-      localStorage.setItem('businessSettings', JSON.stringify(businessSettings));
+      // Получаем salon_id из профиля
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('salon_id')
+        .eq('id', user?.id)
+        .single();
+
+      if (!profile?.salon_id) throw new Error('Salon ID not found');
+
+      // Сохраняем в базу данных
+      const { error } = await supabase
+        .from('salon_settings')
+        .upsert({
+          salon_id: profile.salon_id,
+          setting_key: 'business_settings',
+          setting_value: businessSettings
+        });
+
+      if (error) throw error;
       
       toast({
         title: 'Бизнес настройки сохранены',
-        description: 'Настройки бизнес-процессов обновлены'
+        description: 'Настройки бизнес-процессов обновлены в базе данных'
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving business settings:', error);
       toast({
         title: 'Ошибка',
-        description: 'Не удалось сохранить бизнес настройки',
+        description: error.message,
         variant: 'destructive'
       });
     }
@@ -166,18 +183,35 @@ export default function SettingsPage() {
 
   const handleSaveNotifications = async () => {
     try {
-      // Сохраняем настройки уведомлений в localStorage
-      localStorage.setItem('notificationSettings', JSON.stringify(notificationSettings));
+      // Получаем salon_id из профиля
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('salon_id')
+        .eq('id', user?.id)
+        .single();
+
+      if (!profile?.salon_id) throw new Error('Salon ID not found');
+
+      // Сохраняем в базу данных
+      const { error } = await supabase
+        .from('salon_settings')
+        .upsert({
+          salon_id: profile.salon_id,
+          setting_key: 'notification_settings',
+          setting_value: notificationSettings
+        });
+
+      if (error) throw error;
       
       toast({
         title: 'Настройки уведомлений сохранены',
-        description: 'Параметры уведомлений успешно обновлены'
+        description: 'Параметры уведомлений успешно обновлены в базе данных'
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving notification settings:', error);
       toast({
         title: 'Ошибка',
-        description: 'Не удалось сохранить настройки уведомлений',
+        description: error.message,
         variant: 'destructive'
       });
     }
@@ -185,18 +219,35 @@ export default function SettingsPage() {
 
   const handleSaveSecurity = async () => {
     try {
-      // Сохраняем настройки безопасности в localStorage
-      localStorage.setItem('securitySettings', JSON.stringify(securitySettings));
+      // Получаем salon_id из профиля
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('salon_id')
+        .eq('id', user?.id)
+        .single();
+
+      if (!profile?.salon_id) throw new Error('Salon ID not found');
+
+      // Сохраняем в базу данных
+      const { error } = await supabase
+        .from('salon_settings')
+        .upsert({
+          salon_id: profile.salon_id,
+          setting_key: 'security_settings',
+          setting_value: securitySettings
+        });
+
+      if (error) throw error;
       
       toast({
         title: 'Настройки безопасности сохранены',
-        description: 'Параметры безопасности успешно обновлены'
+        description: 'Параметры безопасности успешно обновлены в базе данных'
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving security settings:', error);
       toast({
         title: 'Ошибка',
-        description: 'Не удалось сохранить настройки безопасности',
+        description: error.message,
         variant: 'destructive'
       });
     }

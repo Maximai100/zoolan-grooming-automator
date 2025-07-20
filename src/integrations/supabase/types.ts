@@ -2210,6 +2210,41 @@ export type Database = {
         }
         Relationships: []
       }
+      salon_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          salon_id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          salon_id: string
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          salon_id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salon_settings_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       salon_subscriptions: {
         Row: {
           auto_renew: boolean | null
