@@ -108,16 +108,21 @@ export default function AppLayout() {
             <div className="flex items-center space-x-4">
               <div className="hidden md:flex items-center space-x-3 px-3 py-2 rounded-lg bg-gradient-to-r from-primary/5 to-primary-glow/5 border border-primary/10">
                 <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center text-white text-sm font-medium">
-                  {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+                  {profile?.first_name?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
+                  {profile?.last_name?.[0] || ''}
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium">
-                    {profile?.first_name} {profile?.last_name}
+                    {profile?.first_name && profile?.last_name 
+                      ? `${profile.first_name} ${profile.last_name}`
+                      : user?.email?.split('@')[0] || 'Пользователь'
+                    }
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {profile?.role === 'owner' ? 'Владелец' : 
                      profile?.role === 'manager' ? 'Менеджер' : 
-                     profile?.role === 'groomer' ? 'Грумер' : 'Администратор'}
+                     profile?.role === 'groomer' ? 'Грумер' : 
+                     profile?.role === 'receptionist' ? 'Администратор' : 'Пользователь'}
                   </p>
                 </div>
               </div>

@@ -3000,6 +3000,14 @@ export type Database = {
         Args: { salon_uuid: string; forecast_days?: number }
         Returns: Json
       }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_current_user_salon_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       log_audit_action: {
         Args: {
           _salon_id: string
