@@ -102,7 +102,7 @@ export default function PetsModal({ client, open, onClose }: PetsModalProps) {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {pets.map((pet) => (
                   <Card key={pet.id} className="hover:shadow-elegant transition-all group">
                     <CardHeader className="pb-3">

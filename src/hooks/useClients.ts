@@ -3,6 +3,22 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+export interface Pet {
+  id: string;
+  name: string;
+  breed?: string;
+  age?: number;
+  weight?: number;
+  gender?: string;
+  color?: string;
+  coat_type?: string;
+  allergies?: string;
+  vaccination_status?: string;
+  special_notes?: string;
+  photo_url?: string;
+  microchip_number?: string;
+}
+
 export interface Client {
   id: string;
   salon_id: string;
@@ -17,8 +33,10 @@ export interface Client {
   total_visits: number;
   total_spent: number;
   last_visit_date?: string;
+  avatar_url?: string;
   created_at: string;
   updated_at: string;
+  pets?: Pet[];
 }
 
 export const useClients = () => {
@@ -57,7 +75,24 @@ export const useClients = () => {
 
       const { data, error } = await supabase
         .from('clients')
-        .select('*')
+        .select(`
+          *,
+          pets (
+            id,
+            name,
+            breed,
+            age,
+            weight,
+            gender,
+            color,
+            coat_type,
+            allergies,
+            vaccination_status,
+            special_notes,
+            photo_url,
+            microchip_number
+          )
+        `)
         .eq('salon_id', profile.salon_id)
         .order('created_at', { ascending: false });
 
