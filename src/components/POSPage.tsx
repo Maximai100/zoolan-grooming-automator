@@ -10,9 +10,11 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useServices } from '@/hooks/useServices';
 import { useClients } from '@/hooks/useClients';
+import { useInventory } from '@/hooks/useInventory';
 import { usePOS } from '@/hooks/usePOS';
 import { useDiscountCodes } from '@/hooks/useDiscountCodes';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface CartItem {
   id: string;
@@ -34,11 +36,27 @@ export default function POSPage() {
   
   const { services } = useServices();
   const { clients } = useClients();
+  const { items: products } = useInventory();
   const { createOrder, loading } = usePOS();
   const { validateDiscountCode, calculateDiscount, markDiscountCodeUsed } = useDiscountCodes();
   const { toast } = useToast();
 
-  const addToCart = (item: { id: string; name: string; price: number; type: 'service' | 'product' }) => {
+  const addToCart = (item: { id: string; name: string; price: number; type: 'service' | 'product'; stock?: number }) => {
+    // Проверяем остатки для товаров
+    if (item.type === 'product' && item.stock !== undefined) {
+      const cartItem = cart.find(cartItem => cartItem.id === item.id);
+      const currentQuantity = cartItem ? cartItem.quantity : 0;
+      
+      if (currentQuantity >= item.stock) {
+        toast({
+          title: 'Недостаточно товара',
+          description: `В наличии только ${item.stock} шт.`,
+          variant: 'destructive'
+        });
+        return;
+      }
+    }
+
     const existingItem = cart.find(cartItem => cartItem.id === item.id);
     
     if (existingItem) {
@@ -181,47 +199,126 @@ export default function POSPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Services & Products */}
         <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Услуги</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {services.map(service => (
-                  <div
-                    key={service.id}
-                    className="p-3 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
-                    onClick={() => addToCart({
-                      id: service.id,
-                      name: service.name,
-                      price: service.price,
-                      type: 'service'
-                    })}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium">{service.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {service.duration_minutes} мин
-                        </p>
-                        {service.category && (
-                          <Badge variant="secondary" className="mt-1">
-                            {service.category}
-                          </Badge>
-                        )}
+          <Tabs defaultValue="services" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="services">Услуги</TabsTrigger>
+              <TabsTrigger value="products">Товары</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="services" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Услуги</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {services.map(service => (
+                      <div
+                        key={service.id}
+                        className="p-3 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
+                        onClick={() => addToCart({
+                          id: service.id,
+                          name: service.name,
+                          price: service.price,
+                          type: 'service'
+                        })}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-medium">{service.name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {service.duration_minutes} мин
+                            </p>
+                            {service.category && (
+                              <Badge variant="secondary" className="mt-1">
+                                {service.category}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">{service.price} ₽</p>
+                            <Button size="sm" className="mt-1 bg-gradient-primary text-white">
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold">{service.price} ₽</p>
-                        <Button size="sm" className="mt-1 bg-gradient-primary text-white">
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="products" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Товары</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {products.map(product => (
+                      <div
+                        key={product.id}
+                        className={`p-3 border rounded-lg transition-colors ${
+                          product.current_stock > 0 
+                            ? 'hover:bg-accent cursor-pointer' 
+                            : 'opacity-50 cursor-not-allowed bg-muted'
+                        }`}
+                        onClick={() => product.current_stock > 0 && addToCart({
+                          id: product.id,
+                          name: product.name,
+                          price: product.unit_price || product.unit_cost,
+                          type: 'product',
+                          stock: product.current_stock
+                        })}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h3 className="font-medium">{product.name}</h3>
+                            {product.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {product.description}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-2 mt-1">
+                              {product.category && (
+                                <Badge variant="secondary">
+                                  {product.category}
+                                </Badge>
+                              )}
+                              <Badge 
+                                variant={product.current_stock <= product.min_stock_level ? "destructive" : "outline"}
+                                className="text-xs"
+                              >
+                                {product.current_stock} шт
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">{product.unit_price || product.unit_cost} ₽</p>
+                            {product.current_stock > 0 ? (
+                              <Button size="sm" className="mt-1 bg-gradient-primary text-white">
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            ) : (
+                              <Badge variant="destructive" className="mt-1">
+                                Нет в наличии
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {products.length === 0 && (
+                      <div className="col-span-2 text-center py-8 text-muted-foreground">
+                        Товары не найдены
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Cart & Checkout */}
