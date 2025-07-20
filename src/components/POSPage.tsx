@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Plus, Minus, ShoppingCart, CreditCard, Trash2, Receipt, Grid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -43,47 +42,92 @@ export default function POSPage() {
   const { toast } = useToast();
 
   const addToCart = (item: { id: string; name: string; price: number; type: 'service' | 'product'; stock?: number }) => {
-    // Проверяем остатки для товаров
-    if (item.type === 'product' && item.stock !== undefined) {
-      const cartItem = cart.find(cartItem => cartItem.id === item.id);
-      const currentQuantity = cartItem ? cartItem.quantity : 0;
-      
-      if (currentQuantity >= item.stock) {
+    try {
+      // Validate input data
+      if (!item.id || !item.name || typeof item.price !== 'number' || !item.type) {
         toast({
-          title: 'Недостаточно товара',
-          description: `В наличии только ${item.stock} шт.`,
+          title: 'Ошибка',
+          description: 'Некорректные данные товара',
           variant: 'destructive'
         });
         return;
       }
-    }
 
-    const existingItem = cart.find(cartItem => cartItem.id === item.id);
-    
-    if (existingItem) {
-      setCart(cart.map(cartItem =>
-        cartItem.id === item.id
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : cartItem
+      // Проверяем остатки для товаров
+      if (item.type === 'product' && item.stock !== undefined) {
+        const cartItem = cart.find(cartItem => cartItem.id === item.id && cartItem.type === item.type);
+        const currentQuantity = cartItem ? cartItem.quantity : 0;
+        
+        if (currentQuantity >= item.stock) {
+          toast({
+            title: 'Недостаточно товара',
+            description: `В наличии только ${item.stock} шт.`,
+            variant: 'destructive'
+          });
+          return;
+        }
+      }
+
+      // Fix: Search by both id AND type to prevent conflicts between services and products
+      const existingItem = cart.find(cartItem => cartItem.id === item.id && cartItem.type === item.type);
+      
+      if (existingItem) {
+        setCart(cart.map(cartItem =>
+          cartItem.id === item.id && cartItem.type === item.type
+            ? { ...cartItem, quantity: cartItem.quantity + 1 }
+            : cartItem
+        ));
+      } else {
+        setCart([...cart, { ...item, quantity: 1 }]);
+      }
+
+      toast({
+        title: 'Добавлено в корзину',
+        description: `${item.name} добавлен в корзину`
+      });
+    } catch (error) {
+      console.error('Error adding item to cart:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось добавить товар в корзину',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const removeFromCart = (itemId: string, itemType: 'service' | 'product') => {
+    try {
+      // Fix: Filter by both id AND type
+      setCart(cart.filter(item => !(item.id === itemId && item.type === itemType)));
+    } catch (error) {
+      console.error('Error removing item from cart:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось удалить товар из корзины',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const updateQuantity = (itemId: string, itemType: 'service' | 'product', newQuantity: number) => {
+    try {
+      if (newQuantity <= 0) {
+        removeFromCart(itemId, itemType);
+        return;
+      }
+      
+      // Fix: Update by both id AND type
+      setCart(cart.map(item =>
+        item.id === itemId && item.type === itemType ? { ...item, quantity: newQuantity } : item
       ));
-    } else {
-      setCart([...cart, { ...item, quantity: 1 }]);
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось обновить количество',
+        variant: 'destructive'
+      });
     }
-  };
-
-  const removeFromCart = (itemId: string) => {
-    setCart(cart.filter(item => item.id !== itemId));
-  };
-
-  const updateQuantity = (itemId: string, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeFromCart(itemId);
-      return;
-    }
-    
-    setCart(cart.map(item =>
-      item.id === itemId ? { ...item, quantity: newQuantity } : item
-    ));
   };
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -93,44 +137,53 @@ export default function POSPage() {
   const total = subtotal - totalDiscountAmount + tipAmount;
 
   const handleApplyDiscount = async () => {
-    if (!discountCode.trim()) {
+    try {
+      if (!discountCode.trim()) {
+        toast({
+          title: 'Ошибка',
+          description: 'Введите промокод',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      const validation = await validateDiscountCode(discountCode);
+      if (!validation.valid) {
+        toast({
+          title: 'Ошибка',
+          description: validation.error,
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      const discount = calculateDiscount(validation.discountCode!, subtotal, cart);
+      if (discount.error) {
+        toast({
+          title: 'Ошибка',
+          description: discount.error,
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      setAppliedDiscount({
+        code: validation.discountCode,
+        discountAmount: discount.discountAmount
+      });
+
+      toast({
+        title: 'Промокод применен',
+        description: `Скидка: ${discount.discountAmount}₽`
+      });
+    } catch (error) {
+      console.error('Error applying discount:', error);
       toast({
         title: 'Ошибка',
-        description: 'Введите промокод',
+        description: 'Не удалось применить промокод',
         variant: 'destructive'
       });
-      return;
     }
-
-    const validation = await validateDiscountCode(discountCode);
-    if (!validation.valid) {
-      toast({
-        title: 'Ошибка',
-        description: validation.error,
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    const discount = calculateDiscount(validation.discountCode!, subtotal, cart);
-    if (discount.error) {
-      toast({
-        title: 'Ошибка',
-        description: discount.error,
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    setAppliedDiscount({
-      code: validation.discountCode,
-      discountAmount: discount.discountAmount
-    });
-
-    toast({
-      title: 'Промокод применен',
-      description: `Скидка: ${discount.discountAmount}₽`
-    });
   };
 
   const handleRemoveDiscount = () => {
@@ -139,16 +192,16 @@ export default function POSPage() {
   };
 
   const handleCheckout = async () => {
-    if (cart.length === 0) {
-      toast({
-        title: 'Ошибка',
-        description: 'Корзина пуста',
-        variant: 'destructive'
-      });
-      return;
-    }
-
     try {
+      if (cart.length === 0) {
+        toast({
+          title: 'Ошибка',
+          description: 'Корзина пуста',
+          variant: 'destructive'
+        });
+        return;
+      }
+
       await createOrder({
         clientId: selectedClient || null,
         items: cart,
@@ -179,6 +232,7 @@ export default function POSPage() {
         description: 'Заказ создан и оплачен'
       });
     } catch (error) {
+      console.error('Error during checkout:', error);
       toast({
         title: 'Ошибка',
         description: 'Не удалось создать заказ',
@@ -395,7 +449,7 @@ export default function POSPage() {
               ) : (
                 <div className="space-y-3">
                   {cart.map(item => (
-                    <div key={item.id} className="flex items-center justify-between p-2 border rounded">
+                    <div key={`${item.id}-${item.type}`} className="flex items-center justify-between p-2 border rounded">
                       <div className="flex-1">
                         <h4 className="font-medium text-sm">{item.name}</h4>
                         <p className="text-xs text-muted-foreground">
@@ -406,7 +460,7 @@ export default function POSPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.id, item.type, item.quantity - 1)}
                           className="bg-card text-foreground border-input"
                         >
                           <Minus className="h-3 w-3" />
@@ -415,7 +469,7 @@ export default function POSPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.id, item.type, item.quantity + 1)}
                           className="bg-card text-foreground border-input"
                         >
                           <Plus className="h-3 w-3" />
@@ -423,7 +477,7 @@ export default function POSPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => removeFromCart(item.id)}
+                          onClick={() => removeFromCart(item.id, item.type)}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
