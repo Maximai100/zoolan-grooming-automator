@@ -15,7 +15,11 @@ import {
   Calendar,
   Target,
   Award,
-  CreditCard
+  CreditCard,
+  Megaphone,
+  Zap,
+  TrendingUp as TrendingUpIcon,
+  Send
 } from 'lucide-react';
 import { useLoyalty } from '@/hooks/useLoyalty';
 import LoyaltyProgramForm from './LoyaltyProgramForm';
@@ -34,6 +38,10 @@ const LoyaltyPage = () => {
     createPersonalOffer,
     adjustClientPoints
   } = useLoyalty();
+
+  // Mock data for campaigns - replace with actual hook
+  const campaigns = [];
+  const automations = [];
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showProgramForm, setShowProgramForm] = useState(false);
@@ -182,6 +190,7 @@ const LoyaltyPage = () => {
           <TabsTrigger value="balances">Балансы клиентов</TabsTrigger>
           <TabsTrigger value="transactions">Транзакции</TabsTrigger>
           <TabsTrigger value="offers">Персональные предложения</TabsTrigger>
+          <TabsTrigger value="campaigns">Массовые рассылки</TabsTrigger>
         </TabsList>
 
         {/* Программы лояльности */}
@@ -395,6 +404,269 @@ const LoyaltyPage = () => {
               </Card>
             ))}
           </div>
+        </TabsContent>
+
+        {/* Массовые рассылки */}
+        <TabsContent value="campaigns" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Активные кампании</CardTitle>
+                <Megaphone className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{campaigns.filter(c => c.status === 'active').length}</div>
+                <p className="text-xs text-muted-foreground">запущенных сейчас</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Автоматизация</CardTitle>
+                <Zap className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{automations.filter(a => a.is_active).length}</div>
+                <p className="text-xs text-muted-foreground">активных правил</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Отправлено сегодня</CardTitle>
+                <Send className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">0</div>
+                <p className="text-xs text-muted-foreground">сообщений</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Tabs defaultValue="campaigns" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="campaigns">Кампании</TabsTrigger>
+              <TabsTrigger value="automation">Автоматизация</TabsTrigger>
+              <TabsTrigger value="segments">Сегменты</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="campaigns" className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Кампании массовых рассылок</h3>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Новая кампания
+                </Button>
+              </div>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center text-muted-foreground">
+                    <Megaphone className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <h3 className="text-lg font-medium mb-2">Создайте первую кампанию</h3>
+                    <p className="mb-4">
+                      Отправляйте персонализированные сообщения сегментам клиентов: 
+                      VIP-клиенты, дни рождения питомцев, неактивные клиенты
+                    </p>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Создать кампанию
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="automation" className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Автоматические рассылки</h3>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Новое правило
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">Дни рождения питомцев</CardTitle>
+                      <Badge variant="outline">Неактивно</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Автоматически поздравляйте владельцев с днем рождения их питомцев и предлагайте скидки
+                    </p>
+                    <div className="flex justify-between text-sm">
+                      <span>Триггер:</span>
+                      <span>За 7 дней до дня рождения</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Последний запуск:</span>
+                      <span>Никогда</span>
+                    </div>
+                    <Button variant="outline" size="sm" className="w-full">
+                      Настроить
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">Возврат клиентов</CardTitle>
+                      <Badge variant="outline">Неактивно</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Напоминайте клиентам, которые не посещали салон более 30 дней
+                    </p>
+                    <div className="flex justify-between text-sm">
+                      <span>Триггер:</span>
+                      <span>30 дней без визитов</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Последний запуск:</span>
+                      <span>Никогда</span>
+                    </div>
+                    <Button variant="outline" size="sm" className="w-full">
+                      Настроить
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">VIP предложения</CardTitle>
+                      <Badge variant="outline">Неактивно</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Специальные предложения для высокоценных клиентов
+                    </p>
+                    <div className="flex justify-between text-sm">
+                      <span>Триггер:</span>
+                      <span>Трата свыше 10 000 ₽</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Последний запуск:</span>
+                      <span>Никогда</span>
+                    </div>
+                    <Button variant="outline" size="sm" className="w-full">
+                      Настроить
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">Свободные слоты</CardTitle>
+                      <Badge variant="outline">Неактивно</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Уведомления о свободных местах в расписании с выгодными предложениями
+                    </p>
+                    <div className="flex justify-between text-sm">
+                      <span>Триггер:</span>
+                      <span>Много свободных слотов</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Последний запуск:</span>
+                      <span>Никогда</span>
+                    </div>
+                    <Button variant="outline" size="sm" className="w-full">
+                      Настроить
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="segments" className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Сегменты клиентов</h3>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Новый сегмент
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">VIP клиенты</CardTitle>
+                      <Badge>Активен</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm">Клиентов:</span>
+                      <span className="font-medium">0</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">Условие:</span>
+                      <span className="text-sm">Потратили {'>'}10 000 ₽</span>
+                    </div>
+                    <Button variant="outline" size="sm" className="w-full">
+                      Редактировать
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">Новые клиенты</CardTitle>
+                      <Badge>Активен</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm">Клиентов:</span>
+                      <span className="font-medium">0</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">Условие:</span>
+                      <span className="text-sm">Зарегистрированы {'<'}30 дней</span>
+                    </div>
+                    <Button variant="outline" size="sm" className="w-full">
+                      Редактировать
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">Неактивные</CardTitle>
+                      <Badge variant="secondary">Неактивен</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm">Клиентов:</span>
+                      <span className="font-medium">0</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">Условие:</span>
+                      <span className="text-sm">Нет визитов {'>'}60 дней</span>
+                    </div>
+                    <Button variant="outline" size="sm" className="w-full">
+                      Редактировать
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
         </TabsContent>
       </Tabs>
 

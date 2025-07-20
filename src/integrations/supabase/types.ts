@@ -389,6 +389,63 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_runs: {
+        Row: {
+          automation_id: string
+          campaign_id: string | null
+          created_at: string | null
+          error_message: string | null
+          execution_time_ms: number | null
+          failed_sends: number | null
+          id: string
+          run_date: string
+          status: string | null
+          successful_sends: number | null
+          target_clients: number
+        }
+        Insert: {
+          automation_id: string
+          campaign_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          failed_sends?: number | null
+          id?: string
+          run_date: string
+          status?: string | null
+          successful_sends?: number | null
+          target_clients?: number
+        }
+        Update: {
+          automation_id?: string
+          campaign_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          failed_sends?: number | null
+          id?: string
+          run_date?: string
+          status?: string | null
+          successful_sends?: number | null
+          target_clients?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_runs_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_automation"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_runs_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaigns: {
         Row: {
           click_count: number | null
@@ -1082,6 +1139,66 @@ export type Database = {
           transaction_type?: string
         }
         Relationships: []
+      }
+      marketing_automation: {
+        Row: {
+          campaign_template: Json | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_run_at: string | null
+          name: string
+          next_run_at: string | null
+          salon_id: string
+          template_id: string | null
+          trigger_conditions: Json
+          trigger_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          campaign_template?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_run_at?: string | null
+          name: string
+          next_run_at?: string | null
+          salon_id: string
+          template_id?: string | null
+          trigger_conditions?: Json
+          trigger_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          campaign_template?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_run_at?: string | null
+          name?: string
+          next_run_at?: string | null
+          salon_id?: string
+          template_id?: string | null
+          trigger_conditions?: Json
+          trigger_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_automation_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketing_automation_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       memberships: {
         Row: {
@@ -2993,6 +3110,14 @@ export type Database = {
         Returns: Json
       }
       cleanup_old_audit_logs: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      create_birthday_campaigns: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      create_retention_campaigns: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
