@@ -193,11 +193,13 @@ All colors MUST be HSL.
 
   /* Improved button styles */
   .btn-primary {
-    @apply bg-gradient-primary hover:opacity-90 text-white font-medium shadow-soft hover:shadow-glow;
+    @apply bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all duration-200;
+    background: var(--hero-gradient);
+    box-shadow: var(--shadow-soft);
   }
 
   .btn-secondary {
-    @apply bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50;
+    @apply bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50 transition-all duration-200;
   }
 
   /* Form improvements */
@@ -211,7 +213,8 @@ All colors MUST be HSL.
   }
 
   .nav-item.active {
-    @apply bg-primary text-primary-foreground shadow-soft;
+    @apply bg-primary text-primary-foreground;
+    box-shadow: var(--shadow-soft);
   }
 
   .nav-item:not(.active) {
@@ -220,11 +223,13 @@ All colors MUST be HSL.
 
   /* Dashboard improvements */
   .metric-card {
-    @apply enhanced-card interactive p-6 space-y-4;
+    @apply border border-border/50 rounded-lg p-6 space-y-4 hover:shadow-md transition-all duration-200;
+    background: var(--card-gradient);
   }
 
   .metric-icon {
-    @apply p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary-glow/10;
+    @apply p-3 rounded-lg;
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--primary-glow) / 0.1));
   }
 
   /* Notification styles */
