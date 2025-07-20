@@ -61,9 +61,21 @@ export const useNotifications = () => {
 
   const fetchTemplates = async () => {
     try {
+      // Get user's salon_id from profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('salon_id')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (!profile?.salon_id) {
+        throw new Error('Не удалось определить салон пользователя');
+      }
+
       const { data, error } = await supabase
         .from('message_templates')
         .select('*')
+        .eq('salon_id', profile.salon_id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -80,9 +92,21 @@ export const useNotifications = () => {
 
   const fetchSettings = async () => {
     try {
+      // Get user's salon_id from profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('salon_id')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (!profile?.salon_id) {
+        throw new Error('Не удалось определить салон пользователя');
+      }
+
       const { data, error } = await supabase
         .from('notification_settings')
         .select('*')
+        .eq('salon_id', profile.salon_id)
         .order('type');
 
       if (error) throw error;
@@ -99,9 +123,21 @@ export const useNotifications = () => {
 
   const fetchNotifications = async () => {
     try {
+      // Get user's salon_id from profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('salon_id')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (!profile?.salon_id) {
+        throw new Error('Не удалось определить салон пользователя');
+      }
+
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
+        .eq('salon_id', profile.salon_id)
         .order('created_at', { ascending: false })
         .limit(100);
 

@@ -43,24 +43,13 @@ const AppLayout = () => {
     { id: "settings", name: "Настройки", icon: Settings },
   ];
 
-  const handleTabClick = (tabId: string) => {
-    console.log('🔄 Switching to tab:', tabId);
-    console.log('🔄 Previous tab:', activeTab);
-    setActiveTab(tabId);
-    setSidebarOpen(false);
-    console.log('✅ Tab switched successfully');
-  };
-
   const renderContent = () => {
-    console.log('🎨 Rendering content for tab:', activeTab);
-    
     switch (activeTab) {
       case "dashboard":
         return <Dashboard />;
       case "calendar":
         return <CalendarPage />;
       case "clients":
-        console.log('👥 Rendering ClientsPage');
         return <ClientsPage />;
       case "staff":
         return <StaffPage />;
@@ -77,7 +66,6 @@ const AppLayout = () => {
           </div>
         );
       default:
-        console.log('⚠️ Unknown tab, falling back to dashboard');
         return <Dashboard />;
     }
   };

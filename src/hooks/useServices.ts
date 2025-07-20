@@ -22,9 +22,21 @@ export const useServices = () => {
 
   const fetchServices = async () => {
     try {
+      // Get user's salon_id from profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('salon_id')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (!profile?.salon_id) {
+        throw new Error('Не удалось определить салон пользователя');
+      }
+
       const { data, error } = await supabase
         .from('services')
         .select('*')
+        .eq('salon_id', profile.salon_id)
         .eq('is_active', true)
         .order('name');
 

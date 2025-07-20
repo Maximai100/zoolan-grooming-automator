@@ -12,8 +12,6 @@ import ClientForm from './ClientForm';
 import PetsModal from './PetsModal';
 
 export default function ClientsPage() {
-  console.log('🎨 ClientsPage component rendering...');
-  
   const { clients, loading, searchTerm, setSearchTerm, addClient, updateClient, deleteClient } = useClients();
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
@@ -21,13 +19,6 @@ export default function ClientsPage() {
   const [showPetsModal, setShowPetsModal] = useState(false);
   const [tagFilter, setTagFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
-
-  console.log('📊 ClientsPage state:', { 
-    clientsCount: clients.length, 
-    loading, 
-    showForm, 
-    editingClient: !!editingClient 
-  });
 
   // Получаем уникальные теги для фильтра
   const allTags = Array.from(new Set(clients.flatMap(client => client.tags)));
@@ -56,25 +47,23 @@ export default function ClientsPage() {
     });
 
   const handleAddClient = () => {
-    console.log('➕ Add client button clicked');
     setEditingClient(null);
     setShowForm(true);
   };
 
   const handleEditClient = (client) => {
-    console.log('✏️ Edit client:', client.id);
     setEditingClient(client);
     setShowForm(true);
   };
 
   const handleSubmit = async (formData) => {
-    console.log('💾 Submitting client data:', formData);
     if (editingClient) {
       await updateClient(editingClient.id, formData);
     } else {
       await addClient(formData);
     }
     setShowForm(false);
+    setEditingClient(null);
   };
 
   const handleViewPets = (client) => {
@@ -101,32 +90,18 @@ export default function ClientsPage() {
   };
 
   if (loading) {
-    console.log('⏳ ClientsPage showing loading state');
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           <div className="text-lg text-muted-foreground">Загрузка клиентов...</div>
-          <div className="text-sm text-muted-foreground">
-            Если загрузка затянулась, проверьте консоль браузера
-          </div>
         </div>
       </div>
     );
   }
 
-  console.log('✅ ClientsPage rendering main content');
-
   return (
     <div className="space-y-6">
-      {/* Debug info */}
-      <div className="bg-muted/50 p-3 rounded text-xs text-muted-foreground">
-        <div>Debug Info:</div>
-        <div>• Клиентов загружено: {clients.length}</div>
-        <div>• Фильтрованных клиентов: {filteredAndSortedClients.length}</div>
-        <div>• Состояние загрузки: {loading ? 'загружается' : 'завершено'}</div>
-        <div>• Форма открыта: {showForm ? 'да' : 'нет'}</div>
-      </div>
 
       {/* Заголовок и статистика */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -320,7 +295,6 @@ export default function ClientsPage() {
         client={editingClient}
         open={showForm}
         onClose={() => {
-          console.log('❌ Closing client form');
           setShowForm(false);
           setEditingClient(null);
         }}

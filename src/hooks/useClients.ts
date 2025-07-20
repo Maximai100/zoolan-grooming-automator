@@ -28,60 +28,46 @@ export const useClients = () => {
   const { toast } = useToast();
 
   const fetchClients = async () => {
-    console.log('🔄 Starting to fetch clients...');
     try {
       // Check if user is authenticated
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      console.log('👤 Current user:', user?.email);
       
       if (authError) {
-        console.error('❌ Auth error:', authError);
         throw authError;
       }
       
       if (!user) {
-        console.error('❌ No authenticated user');
         throw new Error('Пользователь не аутентифицирован');
       }
 
       // Check user profile
-      console.log('🔄 Checking user profile...');
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('salon_id, role')
         .eq('id', user.id)
         .single();
-
-      console.log('👤 User profile:', profile);
       
       if (profileError) {
-        console.error('❌ Profile error:', profileError);
         throw profileError;
       }
 
       if (!profile?.salon_id) {
-        console.error('❌ No salon_id in profile');
         throw new Error('Не удалось определить салон пользователя');
       }
 
-      console.log('🔄 Fetching clients for salon:', profile.salon_id);
       const { data, error } = await supabase
         .from('clients')
         .select('*')
         .eq('salon_id', profile.salon_id)
         .order('created_at', { ascending: false });
 
-      console.log('📊 Clients query result:', { data, error });
-
       if (error) {
-        console.error('❌ Clients fetch error:', error);
         throw error;
       }
       
-      console.log('✅ Successfully fetched clients:', data?.length || 0);
       setClients(data || []);
     } catch (error) {
-      console.error('❌ Error in fetchClients:', error);
+      console.error('Error in fetchClients:', error);
       toast({
         title: 'Ошибка',
         description: error instanceof Error ? error.message : 'Не удалось загрузить клиентов',
@@ -89,12 +75,10 @@ export const useClients = () => {
       });
     } finally {
       setLoading(false);
-      console.log('✅ fetchClients completed, loading set to false');
     }
   };
 
   const addClient = async (clientData: Omit<Client, 'id' | 'salon_id' | 'created_at' | 'updated_at' | 'total_visits' | 'total_spent'>) => {
-    console.log('➕ Adding new client:', clientData);
     try {
       // Get user's salon_id from profile
       const { data: profile } = await supabase
@@ -120,10 +104,9 @@ export const useClients = () => {
         title: 'Успешно',
         description: 'Клиент добавлен'
       });
-      console.log('✅ Client added successfully:', data);
       return { data, error: null };
     } catch (error) {
-      console.error('❌ Error adding client:', error);
+      console.error('Error adding client:', error);
       toast({
         title: 'Ошибка',
         description: 'Не удалось добавить клиента',
@@ -200,15 +183,8 @@ export const useClients = () => {
   });
 
   useEffect(() => {
-    console.log('🔄 useClients useEffect triggered');
     fetchClients();
   }, []);
-
-  console.log('📊 useClients state:', { 
-    clientsCount: clients.length, 
-    loading, 
-    filteredCount: filteredClients.length 
-  });
 
   return {
     clients: filteredClients,

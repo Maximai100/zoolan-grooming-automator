@@ -47,6 +47,17 @@ export const useAppointments = (date?: Date) => {
 
   const fetchAppointments = async () => {
     try {
+      // Get user's salon_id from profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('salon_id')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (!profile?.salon_id) {
+        throw new Error('Не удалось определить салон пользователя');
+      }
+
       let query = supabase
         .from('appointments')
         .select(`
@@ -56,6 +67,7 @@ export const useAppointments = (date?: Date) => {
           service:services(name, category),
           groomer:profiles(first_name, last_name)
         `)
+        .eq('salon_id', profile.salon_id)
         .order('scheduled_date', { ascending: true })
         .order('scheduled_time', { ascending: true });
 
