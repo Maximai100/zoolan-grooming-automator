@@ -1,283 +1,380 @@
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Users, Bell, BarChart3, DollarSign, Clock, TrendingUp, AlertCircle } from "lucide-react";
+import { Calendar, Users, Bell, BarChart3, DollarSign, Clock, TrendingUp, AlertCircle, Plus, ChevronRight } from "lucide-react";
+import { useAuth } from '@/hooks/useAuth';
+import { useAppointments } from '@/hooks/useAppointments';
+import { useClients } from '@/hooks/useClients';
+import { useServices } from '@/hooks/useServices';
+import { supabase } from '@/integrations/supabase/client';
+import { format, isToday, startOfMonth, endOfMonth } from 'date-fns';
+import { ru } from 'date-fns/locale';
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  const { appointments, loading: appointmentsLoading } = useAppointments();
+  const { clients, loading: clientsLoading } = useClients();
+  const { services, loading: servicesLoading } = useServices();
+  
+  const [monthlyRevenue, setMonthlyRevenue] = useState(0);
+  const [todayAppointments, setTodayAppointments] = useState([]);
+  const [recentClients, setRecentClients] = useState([]);
+
+  // Загрузка данных о выручке
+  useEffect(() => {
+    const fetchMonthlyRevenue = async () => {
+      try {
+        const startDate = startOfMonth(new Date());
+        const endDate = endOfMonth(new Date());
+        
+        const { data, error } = await supabase
+          .from('orders')
+          .select('total_amount')
+          .eq('payment_status', 'paid')
+          .gte('created_at', startDate.toISOString())
+          .lte('created_at', endDate.toISOString());
+
+        if (!error && data) {
+          const total = data.reduce((sum, order) => sum + Number(order.total_amount), 0);
+          setMonthlyRevenue(total);
+        }
+      } catch (error) {
+        console.error('Error fetching revenue:', error);
+      }
+    };
+
+    fetchMonthlyRevenue();
+  }, []);
+
+  // Фильтрация сегодняшних записей
+  useEffect(() => {
+    if (!appointmentsLoading && appointments.length > 0) {
+      const today = appointments.filter(apt => 
+        isToday(new Date(apt.scheduled_date))
+      ).sort((a, b) => a.scheduled_time.localeCompare(b.scheduled_time));
+      setTodayAppointments(today);
+    }
+  }, [appointments, appointmentsLoading]);
+
+  // Недавние клиенты
+  useEffect(() => {
+    if (!clientsLoading && clients.length > 0) {
+      const recent = clients
+        .slice(0, 5)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setRecentClients(recent);
+    }
+  }, [clients, clientsLoading]);
+
   const stats = [
     {
       title: "Сегодняшние записи",
-      value: "12",
-      change: "+3 с вчера",
+      value: todayAppointments.length.toString(),
+      change: todayAppointments.filter(apt => apt.status === 'confirmed').length > 0 
+        ? `${todayAppointments.filter(apt => apt.status === 'confirmed').length} подтверждено`
+        : "Нет подтвержденных",
       icon: Calendar,
       color: "text-primary"
     },
     {
       title: "Доход за месяц",
-      value: "₽340,000",
-      change: "+12% к прошлому месяцу",
+      value: `₽${monthlyRevenue.toLocaleString()}`,
+      change: monthlyRevenue > 0 ? "Активные продажи" : "Нет продаж",
       icon: DollarSign,
       color: "text-accent"
     },
     {
       title: "Активные клиенты",
-      value: "248",
-      change: "+18 новых",
+      value: clients.length.toString(),
+      change: `${recentClients.length} новых`,
       icon: Users,
       color: "text-primary"
     },
     {
-      title: "Загруженность",
-      value: "85%",
-      change: "Оптимальная",
-      icon: TrendingUp,
+      title: "Услуг доступно",
+      value: services.filter(s => s.is_active).length.toString(),
+      change: `${services.length} всего`,
+      icon: BarChart3,
       color: "text-primary"
     }
   ];
 
-  const todayAppointments = [
-    {
-      time: "09:00",
-      client: "Анна Петрова",
-      pet: "Макс (Золотистый ретривер)",
-      service: "Полный груминг",
-      duration: "2 часа",
-      status: "confirmed"
-    },
-    {
-      time: "11:30",
-      client: "Игорь Смирнов", 
-      pet: "Белла (Йоркширский терьер)",
-      service: "Стрижка когтей",
-      duration: "30 мин",
-      status: "in-progress"
-    },
-    {
-      time: "14:00",
-      client: "Елена Козлова",
-      pet: "Рекс (Немецкая овчарка)",
-      service: "Мытье и сушка",
-      duration: "1 час",
-      status: "upcoming"
-    },
-    {
-      time: "16:30",
-      client: "Михаил Волков",
-      pet: "Люся (Персидская кошка)",
-      service: "Полный груминг",
-      duration: "1.5 часа",
-      status: "upcoming"
-    }
-  ];
-
-  const recentActivity = [
-    {
-      action: "Новая запись",
-      details: "Мария Иванова записала Бобика на завтра",
-      time: "5 мин назад",
-      type: "booking"
-    },
-    {
-      action: "Платеж получен",
-      details: "₽3,500 от Анны Петровой",
-      time: "15 мин назад", 
-      type: "payment"
-    },
-    {
-      action: "Напоминание отправлено",
-      details: "SMS Игорю Смирнову о записи",
-      time: "1 час назад",
-      type: "reminder"
-    },
-    {
-      action: "Новый отзыв",
-      details: "⭐⭐⭐⭐⭐ от Елены Козловой",
-      time: "2 часа назад",
-      type: "review"
-    }
-  ];
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return <Badge className="bg-primary/10 text-primary">Подтверждено</Badge>;
-      case "in-progress":
-        return <Badge className="bg-accent/10 text-accent">В процессе</Badge>;
-      case "upcoming":
-        return <Badge variant="outline">Ожидает</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
+  const getStatusColor = (status: string) => {
+    const colors = {
+      'scheduled': 'bg-blue-100 text-blue-800 border-blue-200',
+      'confirmed': 'bg-green-100 text-green-800 border-green-200',
+      'in_progress': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      'completed': 'bg-purple-100 text-purple-800 border-purple-200',
+      'cancelled': 'bg-red-100 text-red-800 border-red-200',
+      'no_show': 'bg-gray-100 text-gray-800 border-gray-200'
+    };
+    return colors[status as keyof typeof colors] || colors.scheduled;
   };
 
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case "booking":
-        return <Calendar className="w-4 h-4 text-primary" />;
-      case "payment":
-        return <DollarSign className="w-4 h-4 text-accent" />;
-      case "reminder":
-        return <Bell className="w-4 h-4 text-muted-foreground" />;
-      case "review":
-        return <BarChart3 className="w-4 h-4 text-primary" />;
-      default:
-        return <AlertCircle className="w-4 h-4 text-muted-foreground" />;
-    }
+  const getStatusText = (status: string) => {
+    const texts = {
+      'scheduled': 'Запланирована',
+      'confirmed': 'Подтверждена',
+      'in_progress': 'В процессе',
+      'completed': 'Завершена',
+      'cancelled': 'Отменена',
+      'no_show': 'Не явился'
+    };
+    return texts[status as keyof typeof texts] || status;
   };
+
+  const loading = appointmentsLoading || clientsLoading || servicesLoading;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-muted-foreground">Загрузка дашборда...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">
-            Добро пожаловать обратно! 👋
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Сегодня отличный день для ухода за питомцами
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Button variant="outline">
-            <Calendar className="w-4 h-4 mr-2" />
-            Новая запись
-          </Button>
-          <Button variant="hero">
-            <Users className="w-4 h-4 mr-2" />
-            Добавить клиента
-          </Button>
-        </div>
+    <div className="space-y-6">
+      {/* Приветствие */}
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold">
+          Добро пожаловать в Зооплан! 👋
+        </h1>
+        <p className="text-muted-foreground">
+          Управляйте своим салоном груминга эффективно
+        </p>
       </div>
 
-      {/* Stats Grid */}
+      {/* Статистика */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <Card key={index} className="hover:shadow-glow transition-all duration-300 hover:scale-105 bg-card-gradient">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className={`w-5 h-5 ${stat.color}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stat.change}
-              </p>
+          <Card key={index} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4">
+                <div className={`p-3 rounded-lg bg-gradient-primary/10`}>
+                  <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {stat.title}
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <h3 className="text-2xl font-bold">
+                      {stat.value}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stat.change}
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Today's Appointments */}
-        <div className="lg:col-span-2">
-          <Card className="shadow-card hover:shadow-glow transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-primary" />
-                Записи на сегодня
-              </CardTitle>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Сегодняшние записи */}
+        <Card className="lg:col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <div>
+              <CardTitle className="text-lg">Записи на сегодня</CardTitle>
               <CardDescription>
-                Всего записей: {todayAppointments.length}
+                {format(new Date(), 'EEEE, d MMMM', { locale: ru })}
               </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {todayAppointments.map((appointment, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-3">
-                        <div className="font-semibold text-lg text-foreground">
-                          {appointment.time}
-                        </div>
-                        {getStatusBadge(appointment.status)}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        <div className="font-medium text-foreground">{appointment.client}</div>
-                        <div>{appointment.pet}</div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span>{appointment.service}</span>
-                          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                            {appointment.duration}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      Детали
-                    </Button>
+            </div>
+            <Button variant="outline" size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Добавить
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {todayAppointments.length > 0 ? (
+              todayAppointments.slice(0, 6).map((appointment) => (
+                <div key={appointment.id} className="flex items-center space-x-4 p-3 rounded-lg border">
+                  <div className="flex items-center space-x-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium text-sm">
+                      {appointment.scheduled_time.substring(0, 5)}
+                    </span>
                   </div>
-                ))}
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium text-sm">
+                        {appointment.client?.first_name} {appointment.client?.last_name}
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {appointment.pet?.name} • {appointment.service?.name}
+                    </div>
+                  </div>
+                  <Badge className={getStatusColor(appointment.status)}>
+                    {getStatusText(appointment.status)}
+                  </Badge>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">Нет записей на сегодня</h3>
+                <p className="text-muted-foreground text-sm mb-4">
+                  Создайте первую запись для начала работы
+                </p>
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Добавить запись
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            )}
+          </CardContent>
+        </Card>
 
-        {/* Recent Activity */}
-        <div>
-          <Card className="shadow-card hover:shadow-glow transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-primary" />
-                Последняя активность
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="mt-1">
-                      {getActivityIcon(activity.type)}
+        {/* Недавние клиенты */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <div>
+              <CardTitle className="text-lg">Недавние клиенты</CardTitle>
+              <CardDescription>
+                Последние добавленные клиенты
+              </CardDescription>
+            </div>
+            <Button variant="outline" size="sm">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {recentClients.length > 0 ? (
+              recentClients.map((client) => (
+                <div key={client.id} className="flex items-center space-x-4 p-3 rounded-lg border">
+                  <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-medium">
+                    {client.first_name?.[0]}{client.last_name?.[0]}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium text-sm">
+                        {client.first_name} {client.last_name}
+                      </span>
+                      {client.is_vip && (
+                        <Badge variant="secondary">VIP</Badge>
+                      )}
                     </div>
-                    <div className="space-y-1 flex-1">
-                      <div className="text-sm font-medium text-foreground">
-                        {activity.action}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {activity.details}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {activity.time}
-                      </div>
+                    <div className="text-xs text-muted-foreground">
+                      {client.phone} • {client.total_visits} визитов
                     </div>
                   </div>
-                ))}
+                  <div className="text-right">
+                    <div className="text-sm font-medium">₽{client.total_spent}</div>
+                    <div className="text-xs text-muted-foreground">потрачено</div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">Нет клиентов</h3>
+                <p className="text-muted-foreground text-sm mb-4">
+                  Добавьте первого клиента для начала работы
+                </p>
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Добавить клиента
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Quick Actions */}
-      <Card className="shadow-card">
+      {/* Быстрые действия */}
+      <Card>
         <CardHeader>
           <CardTitle>Быстрые действия</CardTitle>
           <CardDescription>
-            Часто используемые функции для ускорения работы
+            Часто используемые функции для эффективной работы
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button variant="premium" className="h-20 flex-col gap-2">
-              <Calendar className="w-6 h-6" />
-              <span>Календарь</span>
+            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+              <Plus className="h-5 w-5" />
+              <span className="text-sm">Новая запись</span>
             </Button>
-            <Button variant="premium" className="h-20 flex-col gap-2">
-              <Users className="w-6 h-6" />
-              <span>Клиенты</span>
+            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+              <Users className="h-5 w-5" />
+              <span className="text-sm">Добавить клиента</span>
             </Button>
-            <Button variant="premium" className="h-20 flex-col gap-2">
-              <Bell className="w-6 h-6" />
-              <span>Напоминания</span>
+            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+              <Bell className="h-5 w-5" />
+              <span className="text-sm">Отправить напоминание</span>
             </Button>
-            <Button variant="premium" className="h-20 flex-col gap-2">
-              <BarChart3 className="w-6 h-6" />
-              <span>Отчеты</span>
+            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+              <BarChart3 className="h-5 w-5" />
+              <span className="text-sm">Посмотреть аналитику</span>
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Уведомления и задачи */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <AlertCircle className="h-5 w-5 text-yellow-500" />
+              <span>Важные уведомления</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="p-3 border-l-4 border-yellow-500 bg-yellow-50">
+              <div className="font-medium text-sm">Система готова к работе</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Все модули CRM настроены и функционируют
+              </div>
+            </div>
+            <div className="p-3 border-l-4 border-blue-500 bg-blue-50">
+              <div className="font-medium text-sm">Добавьте первых клиентов</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Начните с добавления информации о ваших клиентах
+              </div>
+            </div>
+            <div className="p-3 border-l-4 border-green-500 bg-green-50">
+              <div className="font-medium text-sm">Настройте напоминания</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Автоматические SMS и email для клиентов
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Полезные советы</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="p-3 rounded-lg bg-muted/50">
+              <div className="font-medium text-sm">💡 Оптимизация записей</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Используйте AI-помощник для подбора оптимального времени записи
+              </div>
+            </div>
+            <div className="p-3 rounded-lg bg-muted/50">
+              <div className="font-medium text-sm">📊 Аналитика продаж</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Отслеживайте KPI и прогнозы доходности в разделе "Аналитика"
+              </div>
+            </div>
+            <div className="p-3 rounded-lg bg-muted/50">
+              <div className="font-medium text-sm">🎯 Программы лояльности</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Создавайте персональные предложения для постоянных клиентов
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
