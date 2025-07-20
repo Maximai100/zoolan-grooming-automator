@@ -16,7 +16,8 @@ import {
   ShoppingCart,
   Package,
   Menu,
-  X
+  X,
+  CreditCard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -34,6 +35,7 @@ const navigation = [
   { name: 'Услуги', href: '/services', icon: Wrench },
   { name: 'Инвентарь', href: '/inventory', icon: Package },
   { name: 'Лояльность', href: '/loyalty', icon: Gift },
+  { name: 'Подписка', href: '/subscription', icon: CreditCard },
   { name: 'Настройки', href: '/settings', icon: Settings },
 ];
 
