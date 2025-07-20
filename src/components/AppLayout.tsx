@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Calendar, Users, Bell, BarChart3, Settings, Menu, Home, X, LogOut } from "lucide-react";
+import { Calendar, Users, Bell, BarChart3, Settings, Menu, Home, X, LogOut, Scissors } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import Dashboard from "./Dashboard";
@@ -10,6 +10,8 @@ import CalendarPage from "./CalendarPage";
 import NotificationsPage from "./NotificationsPage";
 import StaffPage from "./StaffPage";
 import AnalyticsPage from "./AnalyticsPage";
+import SettingsPage from "./SettingsPage";
+import ServicesPage from "./ServicesPage";
 
 const AppLayout = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -37,6 +39,7 @@ const AppLayout = () => {
     { id: "dashboard", name: "Дашборд", icon: Home },
     { id: "calendar", name: "Календарь", icon: Calendar },
     { id: "clients", name: "Клиенты", icon: Users },
+    { id: "services", name: "Услуги", icon: Scissors },
     { id: "staff", name: "Персонал", icon: Users },
     { id: "reminders", name: "Напоминания", icon: Bell },
     { id: "analytics", name: "Аналитика", icon: BarChart3 },
@@ -51,6 +54,8 @@ const AppLayout = () => {
         return <CalendarPage />;
       case "clients":
         return <ClientsPage />;
+      case "services":
+        return <ServicesPage />;
       case "staff":
         return <StaffPage />;
       case "reminders":
@@ -58,13 +63,7 @@ const AppLayout = () => {
       case "analytics":
         return <AnalyticsPage />;
       case "settings":
-        return (
-          <div className="text-center py-20">
-            <Settings className="w-16 h-16 text-primary mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Настройки</h2>
-            <p className="text-muted-foreground">Конфигурация системы и профиля</p>
-          </div>
-        );
+        return <SettingsPage />;
       default:
         return <Dashboard />;
     }
