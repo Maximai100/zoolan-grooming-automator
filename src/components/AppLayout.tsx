@@ -1,184 +1,164 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Calendar, Users, Bell, BarChart3, Settings, Menu, Home, X, LogOut, Scissors } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { 
+  LayoutDashboard, 
+  Users, 
+  Calendar, 
+  Bell, 
+  BarChart3, 
+  UserCog, 
+  Settings, 
+  LogOut,
+  Heart,
+  Wrench,
+  ShoppingCart,
+  Menu,
+  X
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-import Dashboard from "./Dashboard";
-import ClientsPage from "./ClientsPage";
-import CalendarPage from "./CalendarPage";
-import NotificationsPage from "./NotificationsPage";
-import StaffPage from "./StaffPage";
-import AnalyticsPage from "./AnalyticsPage";
-import SettingsPage from "./SettingsPage";
-import ServicesPage from "./ServicesPage";
+import { supabase } from '@/integrations/supabase/client';
 
-const AppLayout = () => {
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { signOut, user } = useAuth();
-  const { toast } = useToast();
+const navigation = [
+  { name: 'Дашборд', href: '/', icon: LayoutDashboard },
+  { name: 'Клиенты', href: '/clients', icon: Users },
+  { name: 'Календарь', href: '/calendar', icon: Calendar },
+  { name: 'POS Система', href: '/pos', icon: ShoppingCart },
+  { name: 'Уведомления', href: '/notifications', icon: Bell },
+  { name: 'Аналитика', href: '/analytics', icon: BarChart3 },
+  { name: 'Персонал', href: '/staff', icon: UserCog },
+  { name: 'Услуги', href: '/services', icon: Wrench },
+  { name: 'Настройки', href: '/settings', icon: Settings },
+];
+
+export default function AppLayout() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, profile } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast({
-        title: 'Ошибка',
-        description: 'Не удалось выйти из системы',
-        variant: 'destructive'
-      });
-    } else {
-      toast({
-        title: 'До свидания!',
-        description: 'Вы успешно вышли из системы'
-      });
-    }
+    await supabase.auth.signOut();
+    navigate('/auth');
   };
 
-  const navigation = [
-    { id: "dashboard", name: "Дашборд", icon: Home },
-    { id: "calendar", name: "Календарь", icon: Calendar },
-    { id: "clients", name: "Клиенты", icon: Users },
-    { id: "services", name: "Услуги", icon: Scissors },
-    { id: "staff", name: "Персонал", icon: Users },
-    { id: "reminders", name: "Напоминания", icon: Bell },
-    { id: "analytics", name: "Аналитика", icon: BarChart3 },
-    { id: "settings", name: "Настройки", icon: Settings },
-  ];
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case "dashboard":
-        return <Dashboard />;
-      case "calendar":
-        return <CalendarPage />;
-      case "clients":
-        return <ClientsPage />;
-      case "services":
-        return <ServicesPage />;
-      case "staff":
-        return <StaffPage />;
-      case "reminders":
-        return <NotificationsPage />;
-      case "analytics":
-        return <AnalyticsPage />;
-      case "settings":
-        return <SettingsPage />;
-      default:
-        return <Dashboard />;
-    }
-  };
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div className={`
-        fixed lg:static inset-y-0 left-0 z-50 w-64 bg-card border-r border-border
-        transform transition-transform duration-300 ease-in-out
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
-        <div className="flex items-center justify-between p-6 border-b">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-hero-gradient rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">З</span>
-            </div>
-            <span className="text-xl font-bold text-foreground">Зооплан</span>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-
-        <nav className="p-4 space-y-2">
-          {navigation.map((item) => (
-            <Button
-              key={item.id}
-              variant={activeTab === item.id ? "default" : "ghost"}
-              className={`w-full justify-start gap-3 ${
-                activeTab === item.id 
-                  ? "bg-primary text-primary-foreground shadow-soft" 
-                  : "hover:bg-muted"
-              }`}
-              onClick={() => setActiveTab(item.id)}
-            >
-              <item.icon className="w-5 h-5" />
-              {item.name}
-            </Button>
-          ))}
-        </nav>
-
-        <div className="absolute bottom-4 left-4 right-4">
-          <div className="bg-muted rounded-lg p-3 mb-3">
-            <div className="text-xs text-muted-foreground mb-1">Пользователь</div>
-            <div className="text-sm font-medium truncate">{user?.email}</div>
-          </div>
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start text-muted-foreground hover:text-destructive"
-            onClick={handleSignOut}
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Выйти
-          </Button>
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="bg-card border-b border-border p-4 lg:p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="bg-card border-b border-border sticky top-0 z-40">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
               <Button
                 variant="ghost"
                 size="sm"
-                className="lg:hidden"
-                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden mr-2"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
-                <Menu className="w-5 h-5" />
+                {isMobileMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
               </Button>
-              <div>
-                <h1 className="text-xl font-semibold text-foreground">
-                  {navigation.find(item => item.id === activeTab)?.name}
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  CRM система управления салоном груминга
+              
+              <div className="flex items-center space-x-3">
+                <div className="bg-gradient-primary p-2 rounded-lg">
+                  <Heart className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold">Зооплан</h1>
+                  <p className="text-sm text-muted-foreground hidden sm:block">
+                    Управление салоном груминга
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <div className="hidden sm:block text-right">
+                <p className="text-sm font-medium">
+                  {profile?.first_name} {profile?.last_name}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {profile?.role === 'owner' ? 'Владелец' : 
+                   profile?.role === 'manager' ? 'Менеджер' : 
+                   profile?.role === 'groomer' ? 'Грумер' : 'Администратор'}
                 </p>
               </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm">
-                <Bell className="w-4 h-4 mr-2" />
-                3
+              
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline ml-2">Выход</span>
               </Button>
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">АП</span>
-              </div>
             </div>
           </div>
-        </header>
+        </div>
+      </header>
 
-        {/* Content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
-          {renderContent()}
+      <div className="flex">
+        {/* Desktop Sidebar */}
+        <aside className="hidden lg:block w-64 bg-card border-r border-border min-h-[calc(100vh-4rem)]">
+          <nav className="p-4 space-y-2">
+            {navigation.map((item) => {
+              const isActive = location.pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                  }`}
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </aside>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
+            <Card className="absolute left-0 top-16 bottom-0 w-64 bg-card border-r border-border">
+              <nav className="p-4 space-y-2">
+                {navigation.map((item) => {
+                  const isActive = location.pathname === item.href;
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                        isActive
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                      }`}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </Card>
+          </div>
+        )}
+
+        {/* Main Content */}
+        <main className="flex-1 p-6 lg:p-8 min-h-[calc(100vh-4rem)]">
+          <Outlet />
         </main>
       </div>
     </div>
   );
-};
-
-export default AppLayout;
+}

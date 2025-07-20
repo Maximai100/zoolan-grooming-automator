@@ -1,0 +1,140 @@
+
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+interface CartItem {
+  id: string;
+  type: 'service' | 'product';
+  name: string;
+  price: number;
+  quantity: number;
+  discount?: number;
+}
+
+interface CreateOrderData {
+  clientId: string | null;
+  items: CartItem[];
+  paymentMethod: string;
+  discountCode?: string;
+  tipAmount: number;
+  notes?: string;
+  subtotal: number;
+  discountAmount: number;
+  total: number;
+}
+
+export const usePOS = () => {
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const createOrder = async (orderData: CreateOrderData) => {
+    setLoading(true);
+    try {
+      // Get user's salon_id from profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('salon_id, id')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (!profile?.salon_id) {
+        throw new Error('Не удалось определить салон пользователя');
+      }
+
+      // Create the main order
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          salon_id: profile.salon_id,
+          client_id: orderData.clientId,
+          staff_id: profile.id,
+          subtotal: orderData.subtotal,
+          discount_amount: orderData.discountAmount,
+          tip_amount: orderData.tipAmount,
+          total_amount: orderData.total,
+          payment_method: orderData.paymentMethod,
+          payment_status: 'paid',
+          notes: orderData.notes
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // Create order items
+      const orderItems = orderData.items.map(item => ({
+        order_id: order.id,
+        item_type: item.type,
+        service_id: item.type === 'service' ? item.id : null,
+        product_id: item.type === 'product' ? item.id : null,
+        quantity: item.quantity,
+        unit_price: item.price,
+        discount_amount: (item.discount || 0) * item.quantity,
+        total_price: (item.price * item.quantity) - ((item.discount || 0) * item.quantity)
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) throw itemsError;
+
+      // Create payment record
+      const { error: paymentError } = await supabase
+        .from('payments')
+        .insert({
+          order_id: order.id,
+          amount: orderData.total,
+          method: orderData.paymentMethod,
+          status: 'completed',
+          processed_at: new Date().toISOString()
+        });
+
+      if (paymentError) throw paymentError;
+
+      return order;
+    } catch (error) {
+      console.error('Error creating order:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const applyDiscountCode = async (code: string) => {
+    try {
+      const { data: discount } = await supabase
+        .from('discount_codes')
+        .select('*')
+        .eq('code', code)
+        .eq('is_active', true)
+        .single();
+
+      if (!discount) {
+        throw new Error('Промокод не найден или неактивен');
+      }
+
+      // Check if discount is still valid
+      if (discount.valid_until && new Date(discount.valid_until) < new Date()) {
+        throw new Error('Промокод истек');
+      }
+
+      // Check usage limits
+      if (discount.usage_limit && discount.usage_count >= discount.usage_limit) {
+        throw new Error('Промокод достиг лимита использований');
+      }
+
+      return discount;
+    } catch (error) {
+      console.error('Error applying discount code:', error);
+      throw error;
+    }
+  };
+
+  return {
+    createOrder,
+    applyDiscountCode,
+    loading
+  };
+};
