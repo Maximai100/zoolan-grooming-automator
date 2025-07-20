@@ -57,7 +57,7 @@ export const usePOS = () => {
           payment_status: 'paid',
           notes: orderData.notes,
           order_number: `ORD-${Date.now()}` // Temporary until trigger generates it
-        } as any)
+        })
         .select()
         .single();
 

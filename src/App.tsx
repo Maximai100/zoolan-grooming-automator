@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/AppLayout";
@@ -28,18 +29,17 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<Index />}>
-            <Route path="" element={<AppLayout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="clients" element={<ClientsPage />} />
-              <Route path="calendar" element={<CalendarPage />} />
-              <Route path="pos" element={<POSPage />} />
-              <Route path="notifications" element={<NotificationsPage />} />
-              <Route path="analytics" element={<AnalyticsPage />} />
-              <Route path="staff" element={<StaffPage />} />
-              <Route path="services" element={<ServicesPage />} />
-              <Route path="settings" element={<SettingsPage />} />
-            </Route>
+          <Route path="/landing" element={<Index />} />
+          <Route path="/" element={<ProtectedRoute />}>
+            <Route index element={<Dashboard />} />
+            <Route path="clients" element={<ClientsPage />} />
+            <Route path="calendar" element={<CalendarPage />} />
+            <Route path="pos" element={<POSPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="staff" element={<StaffPage />} />
+            <Route path="services" element={<ServicesPage />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
