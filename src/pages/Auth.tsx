@@ -72,35 +72,60 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-white/10 rounded-full blur-xl animate-float"></div>
+        <div className="absolute bottom-20 right-10 w-24 h-24 bg-white/5 rounded-full blur-xl animate-float" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/3 w-16 h-16 bg-white/5 rounded-full blur-xl animate-float" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      <div className="w-full max-w-md relative z-10 animate-fade-in">
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
-              <Scissors className="h-6 w-6 text-primary" />
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-glow animate-bounce-in">
+              <Scissors className="h-7 w-7 text-primary" />
             </div>
-            <h1 className="text-3xl font-bold text-white">Зооплан</h1>
+            <div>
+              <h1 className="text-4xl font-bold text-white gradient-text-white">Зооплан</h1>
+              <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-white/50 to-transparent mt-1"></div>
+            </div>
           </div>
-          <p className="text-white/80 text-lg">
-            CRM для салонов груминга
+          <p className="text-white/90 text-lg font-medium">
+            Профессиональная CRM для салонов груминга
+          </p>
+          <p className="text-white/70 text-sm mt-2">
+            Управляйте записями, клиентами и бизнесом эффективно
           </p>
         </div>
 
-        <Card className="border-0 shadow-elegant bg-white/95 backdrop-blur">
-          <CardHeader className="text-center pb-4">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Heart className="h-5 w-5 text-primary" />
-              <CardTitle className="text-xl">Добро пожаловать</CardTitle>
+        <Card className="border-0 shadow-glow bg-white/95 backdrop-blur-md animate-scale-in">
+          <CardHeader className="text-center pb-6">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <div className="p-2 rounded-full bg-gradient-primary/10">
+                <Heart className="h-5 w-5 text-primary animate-glow" />
+              </div>
+              <CardTitle className="text-2xl gradient-text">Добро пожаловать</CardTitle>
             </div>
-            <CardDescription>
+            <CardDescription className="text-base">
               Войдите в систему или создайте новый аккаунт
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signin">Вход</TabsTrigger>
-                <TabsTrigger value="signup">Регистрация</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/50 p-1 h-12">
+                <TabsTrigger 
+                  value="signin" 
+                  className="h-10 font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                >
+                  Вход
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="signup" 
+                  className="h-10 font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                >
+                  Регистрация
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin">
@@ -129,10 +154,17 @@ export default function Auth() {
                   </div>
                   <Button 
                     type="submit" 
-                    className="w-full h-11 bg-gradient-primary hover:opacity-90 transition-opacity" 
+                    className="w-full h-11 btn-primary transition-all duration-200 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100" 
                     disabled={isLoading || loading}
                   >
-                    {isLoading ? 'Вход...' : 'Войти'}
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 spinner"></div>
+                        Вход...
+                      </div>
+                    ) : (
+                      'Войти'
+                    )}
                   </Button>
                 </form>
               </TabsContent>
@@ -186,10 +218,17 @@ export default function Auth() {
                   </div>
                   <Button 
                     type="submit" 
-                    className="w-full h-11 bg-gradient-primary hover:opacity-90 transition-opacity" 
+                    className="w-full h-11 btn-primary transition-all duration-200 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100" 
                     disabled={isLoading || loading}
                   >
-                    {isLoading ? 'Регистрация...' : 'Создать аккаунт'}
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 spinner"></div>
+                        Регистрация...
+                      </div>
+                    ) : (
+                      'Создать аккаунт'
+                    )}
                   </Button>
                 </form>
               </TabsContent>
@@ -197,9 +236,19 @@ export default function Auth() {
           </CardContent>
         </Card>
 
-        <div className="text-center mt-6">
-          <p className="text-white/60 text-sm">
-            Нажимая "Создать аккаунт", вы соглашаетесь с нашими условиями использования
+        <div className="text-center mt-8 animate-fade-in" style={{ animationDelay: '500ms' }}>
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <div className="flex space-x-1">
+              <div className="w-2 h-2 bg-white/40 rounded-full"></div>
+              <div className="w-2 h-2 bg-white/60 rounded-full"></div>
+              <div className="w-2 h-2 bg-white/40 rounded-full"></div>
+            </div>
+          </div>
+          <p className="text-white/70 text-sm leading-relaxed">
+            Нажимая "Создать аккаунт", вы соглашаетесь с нашими{' '}
+            <span className="text-white/90 underline cursor-pointer hover:text-white transition-colors">
+              условиями использования
+            </span>
           </p>
         </div>
       </div>

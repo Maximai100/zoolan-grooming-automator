@@ -112,6 +112,139 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Better focus styles */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Loading state */
+  .loading-skeleton {
+    @apply animate-pulse bg-muted rounded-md;
+  }
+
+  /* Improved interactions */
+  .interactive {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .interactive:hover {
+    @apply scale-[1.02] shadow-md;
+  }
+
+  /* Better table styles */
+  .table-row {
+    @apply border-b border-border/50 hover:bg-muted/20 transition-colors duration-150;
+  }
+
+  /* Card improvements */
+  .enhanced-card {
+    @apply bg-card border border-border/50 rounded-lg shadow-sm hover:shadow-md transition-all duration-200;
+  }
+
+  /* Status indicators */
+  .status-dot {
+    @apply w-2 h-2 rounded-full inline-block mr-2;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent;
+  }
+
+  /* Floating action button */
+  .fab {
+    @apply fixed bottom-6 right-6 w-14 h-14 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center z-40;
+  }
+
+  /* Toast improvements */
+  .toast-success {
+    @apply border-green-200 bg-green-50 text-green-800;
+  }
+
+  .toast-error {
+    @apply border-red-200 bg-red-50 text-red-800;
+  }
+
+  /* Loading indicators */
+  .spinner {
+    @apply animate-spin rounded-full border-2 border-gray-300 border-t-primary;
+  }
+
+  /* Mobile responsive adjustments */
+  @screen sm {
+    .mobile-adjust {
+      @apply px-6;
+    }
+  }
+
+  /* Dark mode adjustments */
+  .dark .enhanced-card {
+    @apply border-border/20;
+  }
+
+  /* Improved button styles */
+  .btn-primary {
+    @apply bg-gradient-primary hover:opacity-90 text-white font-medium shadow-soft hover:shadow-glow;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50;
+  }
+
+  /* Form improvements */
+  .form-section {
+    @apply space-y-4 p-6 rounded-lg border border-border/50 bg-card/50;
+  }
+
+  /* Navigation improvements */
+  .nav-item {
+    @apply flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:scale-[1.02];
+  }
+
+  .nav-item.active {
+    @apply bg-primary text-primary-foreground shadow-soft;
+  }
+
+  .nav-item:not(.active) {
+    @apply text-muted-foreground hover:text-foreground hover:bg-accent/50;
+  }
+
+  /* Dashboard improvements */
+  .metric-card {
+    @apply enhanced-card interactive p-6 space-y-4;
+  }
+
+  .metric-icon {
+    @apply p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary-glow/10;
+  }
+
+  /* Notification styles */
+  .notification-item {
+    @apply p-4 border-l-4 rounded-r-lg bg-card/50 transition-all duration-200 hover:bg-card;
+  }
+
+  .notification-success {
+    @apply border-green-500 bg-green-50/50;
+  }
+
+  .notification-warning {
+    @apply border-yellow-500 bg-yellow-50/50;
+  }
+
+  .notification-error {
+    @apply border-red-500 bg-red-50/50;
+  }
+
+  .notification-info {
+    @apply border-blue-500 bg-blue-50/50;
   }
 }

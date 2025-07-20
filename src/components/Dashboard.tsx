@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Users, Bell, BarChart3, DollarSign, Clock, TrendingUp, AlertCircle, Plus, ChevronRight } from "lucide-react";
+import { Calendar, Users, Bell, BarChart3, DollarSign, Clock, TrendingUp, AlertCircle, Plus, ChevronRight, Heart, Star, Phone } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import { useAppointments } from '@/hooks/useAppointments';
 import { useClients } from '@/hooks/useClients';
@@ -149,10 +149,10 @@ const Dashboard = () => {
       {/* Статистика */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <Card key={index} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
+          <Card key={index} className="metric-card group animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+            <CardContent className="p-0">
               <div className="flex items-center space-x-4">
-                <div className={`p-3 rounded-lg bg-gradient-primary/10`}>
+                <div className="metric-icon group-hover:scale-110 transition-transform duration-200">
                   <stat.icon className={`h-6 w-6 ${stat.color}`} />
                 </div>
                 <div className="flex-1">
@@ -160,13 +160,15 @@ const Dashboard = () => {
                     <p className="text-sm font-medium text-muted-foreground">
                       {stat.title}
                     </p>
+                    <TrendingUp className="h-4 w-4 text-green-500 opacity-70" />
                   </div>
                   <div className="flex items-center space-x-2">
-                    <h3 className="text-2xl font-bold">
+                    <h3 className="text-2xl font-bold gradient-text">
                       {stat.value}
                     </h3>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center">
+                    <div className="status-dot bg-green-500"></div>
                     {stat.change}
                   </p>
                 </div>
@@ -178,44 +180,59 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Сегодняшние записи */}
-        <Card className="lg:col-span-1">
+        <Card className="enhanced-card animate-slide-up lg:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <div>
-              <CardTitle className="text-lg">Записи на сегодня</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-primary" />
+                Записи на сегодня
+              </CardTitle>
+              <CardDescription className="text-accent font-medium">
                 {format(new Date(), 'EEEE, d MMMM', { locale: ru })}
               </CardDescription>
             </div>
             <Button 
               variant="outline" 
               size="sm"
+              className="btn-secondary hover:scale-105 transition-transform"
               onClick={() => window.location.href = '/calendar'}
             >
               <Plus className="h-4 w-4 mr-2" />
               Добавить
             </Button>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             {todayAppointments.length > 0 ? (
-              todayAppointments.slice(0, 6).map((appointment) => (
-                <div key={appointment.id} className="flex items-center space-x-4 p-3 rounded-lg border">
-                  <div className="flex items-center space-x-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium text-sm">
+              todayAppointments.slice(0, 6).map((appointment, index) => (
+                <div 
+                  key={appointment.id} 
+                  className="flex items-center space-x-4 p-4 rounded-lg border border-border/50 hover:border-primary/20 transition-all duration-200 hover:shadow-sm bg-gradient-to-r from-card to-card/50 animate-fade-in-left group"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <div className="flex items-center space-x-2 min-w-0">
+                    <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                      <Clock className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="font-medium text-sm whitespace-nowrap">
                       {appointment.scheduled_time.substring(0, 5)}
                     </span>
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
-                      <span className="font-medium text-sm">
+                      <span className="font-medium text-sm truncate">
                         {appointment.client?.first_name} {appointment.client?.last_name}
                       </span>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {appointment.pet?.name} • {appointment.service?.name}
+                    <div className="text-xs text-muted-foreground truncate">
+                      <span className="inline-flex items-center gap-1">
+                        <Heart className="h-3 w-3" />
+                        {appointment.pet?.name}
+                      </span>
+                      <span className="mx-1">•</span>
+                      {appointment.service?.name}
                     </div>
                   </div>
-                  <Badge className={getStatusColor(appointment.status)}>
+                  <Badge className={`${getStatusColor(appointment.status)} transition-all duration-200 hover:scale-105`}>
                     {getStatusText(appointment.status)}
                   </Badge>
                 </div>
@@ -241,40 +258,64 @@ const Dashboard = () => {
         </Card>
 
         {/* Недавние клиенты */}
-        <Card>
+        <Card className="enhanced-card animate-slide-up" style={{ animationDelay: '200ms' }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <div>
-              <CardTitle className="text-lg">Недавние клиенты</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" />
+                Недавние клиенты
+              </CardTitle>
               <CardDescription>
                 Последние добавленные клиенты
               </CardDescription>
             </div>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="btn-secondary hover:scale-105 transition-transform"
+              onClick={() => window.location.href = '/clients'}
+            >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             {recentClients.length > 0 ? (
-              recentClients.map((client) => (
-                <div key={client.id} className="flex items-center space-x-4 p-3 rounded-lg border">
-                  <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-medium">
-                    {client.first_name?.[0]}{client.last_name?.[0]}
+              recentClients.map((client, index) => (
+                <div 
+                  key={client.id} 
+                  className="flex items-center space-x-4 p-4 rounded-lg border border-border/50 hover:border-primary/20 transition-all duration-200 hover:shadow-sm bg-gradient-to-r from-card to-card/50 animate-fade-in-left group"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <div className="relative">
+                    <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center text-white font-medium shadow-soft group-hover:shadow-glow transition-shadow">
+                      {client.first_name?.[0]}{client.last_name?.[0]}
+                    </div>
+                    {client.is_vip && (
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-accent rounded-full flex items-center justify-center">
+                        <Star className="h-2.5 w-2.5 text-white" />
+                      </div>
+                    )}
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
-                      <span className="font-medium text-sm">
+                      <span className="font-medium text-sm truncate">
                         {client.first_name} {client.last_name}
                       </span>
                       {client.is_vip && (
-                        <Badge variant="secondary">VIP</Badge>
+                        <Badge className="bg-accent/10 text-accent border-accent/20 hover:bg-accent/20 transition-colors">VIP</Badge>
                       )}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {client.phone} • {client.total_visits} визитов
+                      <span className="flex items-center gap-1">
+                        <Phone className="h-3 w-3" />
+                        {client.phone}
+                      </span>
+                      <span className="mx-1">•</span>
+                      {client.total_visits} визитов
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-medium">₽{client.total_spent}</div>
+                    <div className="text-sm font-medium gradient-text">₽{client.total_spent.toLocaleString()}</div>
                     <div className="text-xs text-muted-foreground">потрачено</div>
                   </div>
                 </div>
