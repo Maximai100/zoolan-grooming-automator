@@ -1,333 +1,518 @@
-import { useState } from 'react';
-import { format, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { useState, useCallback, useEffect } from 'react';
+import { Calendar, momentLocalizer, Views, View } from 'react-big-calendar';
+import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
+import moment from 'moment';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, User, Heart } from 'lucide-react';
-import { useAppointments, Appointment } from '@/hooks/useAppointments';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Plus, Clock, User, Scissors, Sparkles, TrendingUp } from 'lucide-react';
+import { useAppointments } from '@/hooks/useAppointments';
+import { useClients } from '@/hooks/useClients';
+import { useServices } from '@/hooks/useServices';
+import { useToast } from '@/hooks/use-toast';
 import AppointmentForm from './AppointmentForm';
 
-type ViewMode = 'day' | 'week' | 'month';
+// Настройка локализации для календаря
+moment.locale('ru');
+const localizer = momentLocalizer(moment);
+const DragAndDropCalendar = withDragAndDrop(Calendar);
+
+interface CalendarEvent {
+  id: string;
+  title: string;
+  start: Date;
+  end: Date;
+  resource: {
+    type: 'appointment';
+    appointmentId: string;
+    clientName: string;
+    petName: string;
+    serviceName: string;
+    status: string;
+    price: number;
+    duration: number;
+  };
+}
 
 export default function CalendarPage() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<ViewMode>('week');
-  const [showAppointmentForm, setShowAppointmentForm] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string>('');
-  const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+  const [view, setView] = useState<View>(Views.WEEK);
+  const [date, setDate] = useState(new Date());
+  const [showForm, setShowForm] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<any>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
 
-  const { appointments, loading, addAppointment, updateAppointment, deleteAppointment } = useAppointments();
+  const { appointments, updateAppointment } = useAppointments();
+  const { clients } = useClients();
+  const { services } = useServices();
+  const { toast } = useToast();
 
-  const navigate = (direction: 'prev' | 'next') => {
-    const days = viewMode === 'day' ? 1 : viewMode === 'week' ? 7 : 30;
-    const multiplier = direction === 'next' ? 1 : -1;
-    setCurrentDate(prev => addDays(prev, days * multiplier));
-  };
+  // Преобразование записей в события календаря
+  useEffect(() => {
+    if (appointments && clients && services) {
+      const calendarEvents: CalendarEvent[] = appointments.map(appointment => {
+        const client = clients.find(c => c.id === appointment.client_id);
+        const service = services.find(s => s.id === appointment.service_id);
+        
+        const startDateTime = new Date(`${appointment.scheduled_date}T${appointment.scheduled_time}`);
+        const endDateTime = new Date(startDateTime.getTime() + (appointment.duration_minutes * 60000));
 
-  const getViewDates = () => {
-    switch (viewMode) {
-      case 'day':
-        return [currentDate];
-      case 'week':
-        return eachDayOfInterval({
-          start: startOfWeek(currentDate, { weekStartsOn: 1 }),
-          end: endOfWeek(currentDate, { weekStartsOn: 1 })
-        });
-      case 'month':
-        return eachDayOfInterval({
-          start: startOfMonth(currentDate),
-          end: endOfMonth(currentDate)
-        });
-      default:
-        return [currentDate];
+        return {
+          id: appointment.id,
+          title: `${client?.first_name || 'Клиент'} - ${service?.name || 'Услуга'}`,
+          start: startDateTime,
+          end: endDateTime,
+          resource: {
+            type: 'appointment',
+            appointmentId: appointment.id,
+            clientName: `${client?.first_name || ''} ${client?.last_name || ''}`.trim(),
+            petName: appointment.pet_id || 'Питомец',
+            serviceName: service?.name || 'Услуга',
+            status: appointment.status,
+            price: appointment.price,
+            duration: appointment.duration_minutes
+          }
+        };
+      });
+      setEvents(calendarEvents);
     }
-  };
+  }, [appointments, clients, services]);
 
-  const getAppointmentsForDate = (date: Date) => {
-    return appointments.filter(apt => 
-      isSameDay(new Date(apt.scheduled_date), date)
-    ).sort((a, b) => a.scheduled_time.localeCompare(b.scheduled_time));
-  };
+  // Обработка выбора слота времени
+  const handleSelectSlot = useCallback((slotInfo: any) => {
+    setSelectedSlot(slotInfo);
+    setShowForm(true);
+  }, []);
 
-  const getStatusColor = (status: string) => {
-    const colors = {
-      'scheduled': 'bg-blue-100 text-blue-800 border-blue-200',
-      'confirmed': 'bg-green-100 text-green-800 border-green-200',
-      'in_progress': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      'completed': 'bg-purple-100 text-purple-800 border-purple-200',
-      'cancelled': 'bg-red-100 text-red-800 border-red-200',
-      'no_show': 'bg-gray-100 text-gray-800 border-gray-200'
+  // Обработка выбора события
+  const handleSelectEvent = useCallback((event: CalendarEvent) => {
+    setSelectedEvent(event);
+  }, []);
+
+  // Обработка перетаскивания события
+  const handleEventDrop = useCallback(async ({ event, start, end }: any) => {
+    try {
+      const newDate = moment(start).format('YYYY-MM-DD');
+      const newTime = moment(start).format('HH:mm:ss');
+      const newDuration = Math.round((end.getTime() - start.getTime()) / 60000);
+
+      await updateAppointment(event.resource.appointmentId, {
+        scheduled_date: newDate,
+        scheduled_time: newTime,
+        duration_minutes: newDuration
+      });
+
+      toast({
+        title: 'Запись перенесена',
+        description: `Новое время: ${moment(start).format('DD.MM.YYYY HH:mm')}`
+      });
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось перенести запись',
+        variant: 'destructive'
+      });
+    }
+  }, [updateAppointment, toast]);
+
+  // Изменение размера события
+  const handleEventResize = useCallback(async ({ event, start, end }: any) => {
+    try {
+      const newDuration = Math.round((end.getTime() - start.getTime()) / 60000);
+
+      await updateAppointment(event.resource.appointmentId, {
+        duration_minutes: newDuration
+      });
+
+      toast({
+        title: 'Длительность изменена',
+        description: `Новая длительность: ${newDuration} мин`
+      });
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось изменить длительность',
+        variant: 'destructive'
+      });
+    }
+  }, [updateAppointment, toast]);
+
+  // Определение цвета события по статусу
+  const eventStyleGetter = (event: CalendarEvent) => {
+    const { status } = event.resource;
+    let backgroundColor = '#3174ad';
+    
+    switch (status) {
+      case 'scheduled':
+        backgroundColor = '#3b82f6'; // blue
+        break;
+      case 'confirmed':
+        backgroundColor = '#10b981'; // green
+        break;
+      case 'in_progress':
+        backgroundColor = '#f59e0b'; // yellow
+        break;
+      case 'completed':
+        backgroundColor = '#8b5cf6'; // purple
+        break;
+      case 'cancelled':
+        backgroundColor = '#ef4444'; // red
+        break;
+      case 'no_show':
+        backgroundColor = '#6b7280'; // gray
+        break;
+    }
+
+    return {
+      style: {
+        backgroundColor,
+        borderRadius: '8px',
+        opacity: 0.9,
+        color: 'white',
+        border: '0px',
+        display: 'block',
+        fontSize: '12px',
+        padding: '4px'
+      }
     };
-    return colors[status as keyof typeof colors] || colors.scheduled;
   };
 
-  const getStatusText = (status: string) => {
-    const texts = {
-      'scheduled': 'Запланирована',
-      'confirmed': 'Подтверждена',
-      'in_progress': 'В процессе',
-      'completed': 'Завершена',
-      'cancelled': 'Отменена',
-      'no_show': 'Не явился'
-    };
-    return texts[status as keyof typeof texts] || status;
-  };
-
-  const handleAddAppointment = (date?: Date, time?: string) => {
-    setSelectedDate(date || currentDate);
-    setSelectedTime(time || '');
-    setEditingAppointment(null);
-    setShowAppointmentForm(true);
-  };
-
-  const handleEditAppointment = (appointment: Appointment) => {
-    setEditingAppointment(appointment);
-    setShowAppointmentForm(true);
-  };
-
-  const handleSubmitAppointment = async (data: any) => {
-    if (editingAppointment) {
-      await updateAppointment(editingAppointment.id, data);
-    } else {
-      await addAppointment(data);
-    }
-    setShowAppointmentForm(false);
-  };
-
-  const formatDateTitle = () => {
-    switch (viewMode) {
-      case 'day':
-        return format(currentDate, 'd MMMM yyyy', { locale: ru });
-      case 'week':
-        const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
-        const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
-        return `${format(weekStart, 'd MMM', { locale: ru })} - ${format(weekEnd, 'd MMM yyyy', { locale: ru })}`;
-      case 'month':
-        return format(currentDate, 'MMMM yyyy', { locale: ru });
-    }
-  };
-
-  const timeSlots = Array.from({ length: 18 }, (_, i) => {
-    const hour = Math.floor(i / 2) + 9;
-    const minute = (i % 2) * 30;
-    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-  });
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-muted-foreground">Загрузка календаря...</div>
+  // Кастомный компонент события
+  const EventComponent = ({ event }: { event: CalendarEvent }) => (
+    <div className="flex flex-col h-full p-1">
+      <div className="font-medium text-xs truncate">
+        {event.resource.clientName}
       </div>
-    );
-  }
+      <div className="text-xs opacity-90 truncate">
+        {event.resource.serviceName}
+      </div>
+      <div className="text-xs opacity-75">
+        {event.resource.price}₽
+      </div>
+    </div>
+  );
+
+  // AI оптимизация - предложение лучших слотов
+  const getOptimalSlots = () => {
+    const today = new Date();
+    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    
+    // Простая логика - предлагаем утренние слоты в рабочие дни
+    const optimalSlots = [];
+    for (let i = 1; i <= 5; i++) { // Пн-Пт
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      
+      // Утренние слоты 9:00, 10:00, 11:00
+      for (let hour = 9; hour <= 11; hour++) {
+        const slot = new Date(date);
+        slot.setHours(hour, 0, 0, 0);
+        
+        // Проверяем, что слот свободен
+        const hasConflict = events.some(event => 
+          event.start <= slot && event.end > slot
+        );
+        
+        if (!hasConflict) {
+          optimalSlots.push(slot);
+        }
+      }
+    }
+    
+    return optimalSlots.slice(0, 6); // Возвращаем до 6 оптимальных слотов
+  };
+
+  // Вычисление загрузки календаря
+  const getCalendarUtilization = () => {
+    const today = new Date();
+    const todayEvents = events.filter(e => moment(e.start).isSame(today, 'day'));
+    const workingHours = 12; // 8:00 - 20:00
+    const busyHours = todayEvents.reduce((sum, e) => sum + e.resource.duration, 0) / 60;
+    return Math.round((busyHours / workingHours) * 100);
+  };
+
+  const optimalSlots = getOptimalSlots();
+  const utilization = getCalendarUtilization();
 
   return (
     <div className="space-y-6">
       {/* Заголовок и управление */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => navigate('prev')}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="text-center">
-            <h1 className="text-2xl font-bold">{formatDateTitle()}</h1>
-            <p className="text-sm text-muted-foreground">
-              {viewMode === 'day' && isToday(currentDate) && 'Сегодня'}
-            </p>
-          </div>
-          <Button variant="outline" size="sm" onClick={() => navigate('next')}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Календарь записей</h1>
+          <p className="text-muted-foreground">
+            Перетаскивайте записи для изменения времени • Изменяйте размер для длительности
+          </p>
         </div>
-
-        <div className="flex items-center gap-3">
-          <Select value={viewMode} onValueChange={(value: ViewMode) => setViewMode(value)}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="day">День</SelectItem>
-              <SelectItem value="week">Неделя</SelectItem>
-              <SelectItem value="month">Месяц</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Button onClick={() => setCurrentDate(new Date())} variant="outline">
+        
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setDate(new Date())}
+          >
             Сегодня
           </Button>
-
-          <Button onClick={() => handleAddAppointment()} className="bg-gradient-primary">
-            <Plus className="h-4 w-4 mr-2" />
-            Новая запись
-          </Button>
+          <Dialog open={showForm} onOpenChange={setShowForm}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-primary">
+                <Plus className="h-4 w-4 mr-2" />
+                Новая запись
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Создать запись</DialogTitle>
+              </DialogHeader>
+              <AppointmentForm 
+                selectedDate={selectedSlot?.start}
+                open={false}
+                onClose={() => setShowForm(false)}
+                onSubmit={() => {}}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
-      {/* Календарь */}
-      <div className="space-y-4">
-        {viewMode === 'month' ? (
-          // Месячный вид
-          <div className="grid grid-cols-7 gap-2">
-            {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(day => (
-              <div key={day} className="p-2 text-center font-medium text-muted-foreground border-b">
-                {day}
+      {/* Статистика и AI оптимизация */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Статистика дня */}
+        <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-blue-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Записей сегодня</p>
+                  <p className="text-2xl font-bold">
+                    {events.filter(e => moment(e.start).isSame(new Date(), 'day')).length}
+                  </p>
+                </div>
               </div>
-            ))}
-            {getViewDates().map(date => {
-              const dayAppointments = getAppointmentsForDate(date);
-              return (
-                <Card 
-                  key={date.toISOString()} 
-                  className={`min-h-24 p-2 cursor-pointer hover:shadow-md transition-shadow ${
-                    isToday(date) ? 'ring-2 ring-primary' : ''
-                  }`}
-                  onClick={() => handleAddAppointment(date)}
-                >
-                  <div className="text-sm font-medium mb-1">
-                    {format(date, 'd')}
-                  </div>
-                  <div className="space-y-1">
-                    {dayAppointments.slice(0, 3).map(apt => (
-                      <div 
-                        key={apt.id}
-                        className="text-xs p-1 rounded bg-primary/10 text-primary truncate"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditAppointment(apt);
-                        }}
-                      >
-                        {apt.scheduled_time} {apt.client?.first_name}
-                      </div>
-                    ))}
-                    {dayAppointments.length > 3 && (
-                      <div className="text-xs text-muted-foreground">
-                        +{dayAppointments.length - 3} еще
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        ) : (
-          // Дневной и недельный вид
-          <div className={`grid gap-4 ${viewMode === 'week' ? 'grid-cols-7' : 'grid-cols-1'}`}>
-            {getViewDates().map(date => (
-              <Card key={date.toISOString()} className={isToday(date) ? 'ring-2 ring-primary' : ''}>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center justify-between">
-                    <span>{format(date, 'EEE, d MMM', { locale: ru })}</span>
-                    <Button 
-                      size="sm" 
-                      variant="ghost"
-                      onClick={() => handleAddAppointment(date)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {viewMode === 'day' ? (
-                    // Временные слоты для дневного вида
-                    <div className="grid grid-cols-1 gap-2">
-                      {timeSlots.map(time => {
-                        const appointment = getAppointmentsForDate(date).find(apt => 
-                          apt.scheduled_time.substring(0, 5) === time
-                        );
-                        
-                        return (
-                          <div key={time} className="flex items-center gap-3 min-h-12 p-2 border rounded">
-                            <div className="text-sm font-medium text-muted-foreground w-16">
-                              {time}
-                            </div>
-                            {appointment ? (
-                              <div 
-                                className="flex-1 p-2 rounded cursor-pointer hover:shadow-sm transition-shadow"
-                                onClick={() => handleEditAppointment(appointment)}
-                              >
-                                <div className="flex items-center justify-between">
-                                  <div>
-                                    <div className="font-medium flex items-center gap-2">
-                                      <User className="h-4 w-4" />
-                                      {appointment.client?.first_name} {appointment.client?.last_name}
-                                    </div>
-                                    <div className="text-sm text-muted-foreground flex items-center gap-2">
-                                      <Heart className="h-3 w-3" />
-                                      {appointment.pet?.name} • {appointment.service?.name}
-                                    </div>
-                                  </div>
-                                  <Badge className={getStatusColor(appointment.status)}>
-                                    {getStatusText(appointment.status)}
-                                  </Badge>
-                                </div>
-                              </div>
-                            ) : (
-                              <div 
-                                className="flex-1 p-2 border-dashed border-2 border-muted rounded cursor-pointer hover:border-primary transition-colors"
-                                onClick={() => handleAddAppointment(date, time)}
-                              >
-                                <div className="text-center text-muted-foreground">
-                                  <Plus className="h-4 w-4 mx-auto mb-1" />
-                                  Свободно
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    // Список записей для недельного вида
-                    <div className="space-y-2">
-                      {getAppointmentsForDate(date).map(appointment => (
-                        <div 
-                          key={appointment.id}
-                          className="p-2 border rounded cursor-pointer hover:shadow-sm transition-shadow"
-                          onClick={() => handleEditAppointment(appointment)}
-                        >
-                          <div className="flex items-center gap-2 text-sm">
-                            <Clock className="h-3 w-3" />
-                            <span className="font-medium">{appointment.scheduled_time.substring(0, 5)}</span>
-                          </div>
-                          <div className="text-sm mt-1">
-                            {appointment.client?.first_name} • {appointment.pet?.name}
-                          </div>
-                          <Badge className={`mt-1 ${getStatusColor(appointment.status)}`}>
-                            {getStatusText(appointment.status)}
-                          </Badge>
-                        </div>
-                      ))}
-                      {getAppointmentsForDate(date).length === 0 && (
-                        <div 
-                          className="p-4 border-dashed border-2 border-muted rounded cursor-pointer hover:border-primary transition-colors text-center"
-                          onClick={() => handleAddAppointment(date)}
-                        >
-                          <CalendarIcon className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                          <div className="text-muted-foreground">Нет записей</div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-green-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Подтверждено</p>
+                  <p className="text-2xl font-bold">
+                    {events.filter(e => 
+                      moment(e.start).isSame(new Date(), 'day') && 
+                      e.resource.status === 'confirmed'
+                    ).length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-purple-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Загрузка</p>
+                  <p className="text-2xl font-bold">{utilization}%</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 bg-gradient-primary rounded-full" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Выручка</p>
+                  <p className="text-2xl font-bold">
+                    {events
+                      .filter(e => moment(e.start).isSame(new Date(), 'day'))
+                      .reduce((sum, e) => sum + e.resource.price, 0)
+                    }₽
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* AI Оптимизация */}
+        {optimalSlots.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Sparkles className="h-5 w-5 text-yellow-500" />
+                AI Рекомендации
+              </CardTitle>
+              <CardDescription>
+                Оптимальные свободные слоты
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {optimalSlots.slice(0, 4).map((slot, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedSlot({ start: slot, end: new Date(slot.getTime() + 60 * 60 * 1000) });
+                      setShowForm(true);
+                    }}
+                    className="w-full justify-start text-xs"
+                  >
+                    <Clock className="h-3 w-3 mr-2" />
+                    {moment(slot).format('dd DD.MM HH:mm')}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
 
-      {/* Форма записи */}
-      <AppointmentForm
-        appointment={editingAppointment}
-        selectedDate={selectedDate}
-        selectedTime={selectedTime}
-        open={showAppointmentForm}
-        onClose={() => setShowAppointmentForm(false)}
-        onSubmit={handleSubmitAppointment}
-        onDelete={deleteAppointment}
-      />
+      {/* Легенда статусов */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-blue-500 rounded"></div>
+              <span className="text-sm">Запланировано</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-green-500 rounded"></div>
+              <span className="text-sm">Подтверждено</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-yellow-500 rounded"></div>
+              <span className="text-sm">В процессе</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-purple-500 rounded"></div>
+              <span className="text-sm">Завершено</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-red-500 rounded"></div>
+              <span className="text-sm">Отменено</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-gray-500 rounded"></div>
+              <span className="text-sm">Не явились</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Основной календарь */}
+      <Card>
+        <CardContent className="p-6">
+          <div style={{ height: '600px' }}>
+            <DragAndDropCalendar
+              localizer={localizer}
+              events={events}
+              startAccessor="start"
+              endAccessor="end"
+              view={view}
+              onView={setView}
+              date={date}
+              onNavigate={setDate}
+              onSelectSlot={handleSelectSlot}
+              onSelectEvent={handleSelectEvent}
+              onEventDrop={handleEventDrop}
+              onEventResize={handleEventResize}
+              selectable
+              resizable
+              draggableAccessor={() => true}
+              eventPropGetter={eventStyleGetter}
+              components={{
+                event: EventComponent
+              }}
+              messages={{
+                next: 'Далее',
+                previous: 'Назад',
+                today: 'Сегодня',
+                month: 'Месяц',
+                week: 'Неделя',
+                day: 'День',
+                agenda: 'Повестка',
+                date: 'Дата',
+                time: 'Время',
+                event: 'Событие',
+                noEventsInRange: 'Нет записей в этом диапазоне.',
+                allDay: 'Весь день'
+              }}
+              formats={{
+                timeGutterFormat: 'HH:mm',
+                eventTimeRangeFormat: ({ start, end }, culture, localizer) =>
+                  localizer?.format(start, 'HH:mm', culture) + ' - ' + localizer?.format(end, 'HH:mm', culture),
+                dayFormat: 'dd DD.MM',
+                dayHeaderFormat: 'dddd DD.MM.YYYY'
+              }}
+              min={new Date(2024, 0, 1, 8, 0, 0)} // Начало рабочего дня 8:00
+              max={new Date(2024, 0, 1, 20, 0, 0)} // Конец рабочего дня 20:00
+              step={30} // Шаг 30 минут
+              timeslots={2} // 2 слота по 30 минут = 1 час
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Модальное окно выбранного события */}
+      {selectedEvent && (
+        <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Детали записи</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Клиент</label>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedEvent.resource.clientName}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Питомец</label>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedEvent.resource.petName}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Услуга</label>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedEvent.resource.serviceName}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Стоимость</label>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedEvent.resource.price}₽
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Время</label>
+                  <p className="text-sm text-muted-foreground">
+                    {moment(selectedEvent.start).format('DD.MM.YYYY HH:mm')} - {moment(selectedEvent.end).format('HH:mm')}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Статус</label>
+                  <Badge variant="outline">
+                    {selectedEvent.resource.status}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
