@@ -48,55 +48,24 @@ const StaffForm = ({ open, onClose, onStaffAdded }: StaffFormProps) => {
         throw new Error('Не удалось определить салон');
       }
 
-      // Создаем auth пользователя через Supabase Auth Admin API
-      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-        email: formData.email,
-        password: formData.password,
-        email_confirm: true,
-        user_metadata: {
+      // В демо-режиме создаем только профиль сотрудника
+      // В реальной системе здесь будет создание полноценного пользователя
+      const newUserId = crypto.randomUUID();
+      
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([{
+          id: newUserId,
+          email: formData.email,
           first_name: formData.first_name,
           last_name: formData.last_name,
           phone: formData.phone,
-          role: formData.role
-        }
-      });
-
-      if (authError) {
-        console.error('Auth error:', authError);
-        // Fallback для демо-режима - создаем профиль с временным ID
-        const newUserId = crypto.randomUUID();
-        
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([{
-            id: newUserId,
-            email: formData.email,
-            first_name: formData.first_name,
-            last_name: formData.last_name,
-            phone: formData.phone,
-            role: formData.role,
-            salon_id: profile.salon_id,
-            is_active: true
-          }]);
-        
-        if (profileError) throw profileError;
-      } else if (authUser.user) {
-        // Создаем профиль с реальным user ID
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([{
-            id: authUser.user.id,
-            email: formData.email,
-            first_name: formData.first_name,
-            last_name: formData.last_name,
-            phone: formData.phone,
-            role: formData.role,
-            salon_id: profile.salon_id,
-            is_active: true
-          }]);
-        
-        if (profileError) throw profileError;
-      }
+          role: formData.role,
+          salon_id: profile.salon_id,
+          is_active: true
+        }]);
+      
+      if (profileError) throw profileError;
 
 
       toast({
