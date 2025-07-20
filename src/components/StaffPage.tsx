@@ -555,25 +555,78 @@ const StaffPage = () => {
               staff.map((member: any) => (
                 <Card key={member.id}>
                   <CardContent className="p-4">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h3 className="font-medium">
-                          {member.first_name} {member.last_name}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">{member.email}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant={member.role === 'owner' ? 'default' : 'secondary'}>
-                            {member.role}
-                          </Badge>
-                          <Badge variant={member.is_active ? 'default' : 'destructive'}>
-                            {member.is_active ? 'Активен' : 'Неактивен'}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="text-right text-sm text-muted-foreground">
-                        Регистрация: {format(new Date(member.created_at), 'dd.MM.yyyy')}
-                      </div>
-                    </div>
+                     <div className="flex justify-between items-start">
+                       <div className="flex-1">
+                         <h3 className="font-medium">
+                           {member.first_name} {member.last_name}
+                         </h3>
+                         <p className="text-sm text-muted-foreground">{member.email}</p>
+                         <div className="flex items-center gap-2 mt-2">
+                           <Badge variant={member.role === 'owner' ? 'default' : 'secondary'}>
+                             {member.role}
+                           </Badge>
+                           <Badge variant={member.is_active ? 'default' : 'destructive'}>
+                             {member.is_active ? 'Активен' : 'Неактивен'}
+                           </Badge>
+                         </div>
+                         
+                         {/* Clock In/Out кнопки */}
+                         <div className="flex gap-2 mt-3">
+                           <Button
+                             size="sm"
+                             variant="outline"
+                             onClick={async () => {
+                               try {
+                                 await clockIn.mutateAsync(undefined);
+                                 toast({
+                                   title: 'Отмечен приход',
+                                   description: `${member.first_name} начал смену`
+                                 });
+                               } catch (error: any) {
+                                 toast({
+                                   title: 'Ошибка',
+                                   description: error.message,
+                                   variant: 'destructive'
+                                 });
+                               }
+                             }}
+                           >
+                             <Play className="h-3 w-3 mr-1" />
+                             Приход
+                           </Button>
+                           <Button
+                             size="sm"
+                             variant="outline"
+                             onClick={() => {
+                               toast({
+                                 title: 'Функция в разработке',
+                                 description: 'Требуется активная запись времени для завершения'
+                               });
+                             }}
+                           >
+                             <Square className="h-3 w-3 mr-1" />
+                             Уход
+                           </Button>
+                         </div>
+                       </div>
+                       <div className="flex flex-col items-end gap-2">
+                         <div className="text-right text-sm text-muted-foreground">
+                           Регистрация: {format(new Date(member.created_at), 'dd.MM.yyyy')}
+                         </div>
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={() => {
+                             toast({
+                               title: 'В разработке',
+                               description: 'Редактирование сотрудника будет доступно в следующей версии'
+                             });
+                           }}
+                         >
+                           <Edit3 className="h-4 w-4" />
+                         </Button>
+                       </div>
+                     </div>
                   </CardContent>
                 </Card>
               ))

@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useNotifications } from '@/hooks/useNotifications';
 import { useToast } from '@/hooks/use-toast';
+import NotificationChannelSettings from './NotificationChannelSettings';
 import { 
   Send, MessageSquare, Mail, Phone, Settings, Plus, 
   Clock, CheckCircle, XCircle, AlertCircle, Search,
@@ -55,6 +56,9 @@ const NotificationsPage = () => {
   // Состояние диалогов
   const [showTemplateForm, setShowTemplateForm] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
+  const [showChannelSettings, setShowChannelSettings] = useState(false);
+  const [selectedChannel, setSelectedChannel] = useState('');
+  const [channelSettings, setChannelSettings] = useState({});
 
   const handleSendTestNotification = async () => {
     if (!newNotification.recipient || !newNotification.content) {
@@ -498,9 +502,25 @@ const NotificationsPage = () => {
                         </div>
                       </div>
                       <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Edit3 className="h-4 w-4" />
-                        </Button>
+                         <Button 
+                           variant="outline" 
+                           size="sm"
+                           onClick={() => {
+                             setEditingTemplate(template);
+                             setNewTemplate({
+                               name: template.name,
+                               type: template.type,
+                               trigger_event: template.trigger_event,
+                               subject: template.subject || '',
+                               content: template.content,
+                               is_active: template.is_active,
+                               is_default: template.is_default
+                             });
+                             setShowTemplateForm(true);
+                           }}
+                         >
+                           <Edit3 className="h-4 w-4" />
+                         </Button>
                         <Button 
                           variant="outline" 
                           size="sm"
@@ -621,9 +641,17 @@ const NotificationsPage = () => {
                           updateSettings(type, { is_enabled: checked });
                         }}
                       />
-                      <Button size="sm" variant="outline">
-                        Настроить
-                      </Button>
+                       <Button 
+                         size="sm" 
+                         variant="outline"
+                         onClick={() => {
+                           setSelectedChannel(getTypeName(type));
+                           setChannelSettings(setting?.api_settings || {});
+                           setShowChannelSettings(true);
+                         }}
+                       >
+                         Настроить
+                       </Button>
                     </div>
                   </div>
                 );
@@ -724,6 +752,23 @@ const NotificationsPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Диалог настроек канала */}
+      <NotificationChannelSettings
+        open={showChannelSettings}
+        onClose={() => setShowChannelSettings(false)}
+        channelType={selectedChannel}
+        currentSettings={channelSettings}
+        onSave={(newSettings) => {
+          // Сохраняем настройки канала
+          const channelType = selectedChannel.toLowerCase();
+          updateSettings(channelType, {
+            api_settings: newSettings,
+            is_enabled: true
+          });
+          setChannelSettings(newSettings);
+        }}
+      />
     </div>
   );
 };

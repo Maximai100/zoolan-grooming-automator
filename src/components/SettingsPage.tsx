@@ -202,49 +202,172 @@ export default function SettingsPage() {
     }
   };
 
-  const handleUploadPhoto = () => {
+  const handleUploadPhoto = async () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.onchange = (e) => {
+    input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
-        // TODO: Реализовать загрузку в Supabase Storage
-        toast({
-          title: 'В разработке',
-          description: 'Загрузка фото будет доступна в следующей версии'
-        });
+        try {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${user?.id}_avatar.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('pet-photos') // используем существующий bucket
+            .upload(`avatars/${fileName}`, file, {
+              upsert: true
+            });
+
+          if (uploadError) throw uploadError;
+
+          const { data } = supabase.storage
+            .from('pet-photos')
+            .getPublicUrl(`avatars/${fileName}`);
+
+          // Обновляем профиль с новой ссылкой на аватар
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ avatar_url: data.publicUrl })
+            .eq('id', user?.id);
+
+          if (updateError) throw updateError;
+
+          setProfileSettings(prev => ({ ...prev, avatarUrl: data.publicUrl }));
+          
+          toast({
+            title: 'Фото загружено',
+            description: 'Ваше фото профиля успешно обновлено'
+          });
+        } catch (error: any) {
+          toast({
+            title: 'Ошибка загрузки',
+            description: error.message,
+            variant: 'destructive'
+          });
+        }
       }
     };
     input.click();
   };
 
-  const handleChangePassword = () => {
-    toast({
-      title: 'В разработке',
-      description: 'Смена пароля будет доступна в следующей версии'
-    });
+  const handleChangePassword = async () => {
+    try {
+      // Используем Supabase для смены пароля через email
+      const { error } = await supabase.auth.resetPasswordForEmail(user?.email || '', {
+        redirectTo: `${window.location.origin}/auth?mode=reset-password`
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Ссылка отправлена',
+        description: 'Проверьте email для смены пароля'
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
   };
 
-  const handleEndSessions = () => {
-    toast({
-      title: 'В разработке',
-      description: 'Завершение сессий будет доступно в следующей версии'
-    });
+  const handleEndSessions = async () => {
+    try {
+      // Завершаем текущую сессию пользователя
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      
+      if (error) throw error;
+
+      toast({
+        title: 'Сессии завершены',
+        description: 'Все активные сессии были завершены'
+      });
+      
+      // Перенаправляем на страницу входа
+      window.location.href = '/auth';
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
   };
 
-  const handleDownloadData = () => {
-    toast({
-      title: 'В разработке',
-      description: 'Скачивание данных будет доступно в следующей версии'
-    });
+  const handleDownloadData = async () => {
+    try {
+      // Собираем данные пользователя из разных таблиц
+      const [profileData, clientsData, appointmentsData] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', user?.id).single(),
+        supabase.from('clients').select('*'),
+        supabase.from('appointments').select('*')
+      ]);
+
+      const exportData = {
+        profile: profileData.data,
+        clients: clientsData.data || [],
+        appointments: appointmentsData.data || [],
+        exportDate: new Date().toISOString()
+      };
+
+      // Создаем и скачиваем файл
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `zooplan-data-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Данные скачаны',
+        description: 'Ваши данные успешно экспортированы'
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка экспорта',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
   };
 
-  const handleDeleteAccount = () => {
-    toast({
-      title: 'В разработке',
-      description: 'Удаление аккаунта будет доступно в следующей версии'
-    });
+  const handleDeleteAccount = async () => {
+    if (!confirm('Вы уверены? Это действие нельзя отменить. Все данные будут удалены.')) {
+      return;
+    }
+
+    try {
+      // Удаляем профиль пользователя (каскадное удаление сработает для связанных данных)
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', user?.id);
+
+      if (error) throw error;
+
+      // Удаляем аккаунт в auth
+      await supabase.auth.admin.deleteUser(user?.id || '');
+
+      toast({
+        title: 'Аккаунт удален',
+        description: 'Ваш аккаунт и все данные были удалены'
+      });
+
+      // Выходим из системы
+      await supabase.auth.signOut();
+      window.location.href = '/';
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка удаления',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
   };
 
   return (
