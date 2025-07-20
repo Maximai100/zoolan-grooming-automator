@@ -38,6 +38,7 @@ const navigation = [
   { name: 'Инвентарь', href: '/inventory', icon: Package },
   { name: 'Лояльность', href: '/loyalty', icon: Gift },
   { name: 'Подписка', href: '/subscription', icon: CreditCard },
+  { name: 'Экспорт данных', href: '/exports', icon: BarChart3 },
   { name: 'Безопасность', href: '/security', icon: Shield },
   { name: 'Мессенджеры', href: '/messengers', icon: MessageSquare },
   { name: 'Настройки', href: '/settings', icon: Settings },

@@ -21,6 +21,7 @@ import SettingsPage from "./components/SettingsPage";
 import LoyaltyPage from "./components/LoyaltyPage";
 import InventoryPage from "./components/InventoryPage";
 import SubscriptionPage from "./components/SubscriptionPage";
+import DataExportPage from "./components/DataExportPage";
 import SecurityPage from "./components/SecurityPage";
 import MessengersPage from "./components/MessengersPage";
 
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="inventory" element={<InventoryPage />} />
               <Route path="loyalty" element={<LoyaltyPage />} />
               <Route path="subscription" element={<SubscriptionPage />} />
+              <Route path="exports" element={<DataExportPage />} />
               <Route path="security" element={<SecurityPage />} />
               <Route path="messengers" element={<MessengersPage />} />
               <Route path="settings" element={<SettingsPage />} />
