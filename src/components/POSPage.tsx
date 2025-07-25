@@ -203,7 +203,7 @@ export default function POSPage() {
       }
 
       await createOrder({
-        clientId: selectedClient || null,
+        clientId: selectedClient && selectedClient !== 'guest' ? selectedClient : null,
         items: cart,
         paymentMethod,
         discountCode: appliedDiscount?.code?.code || '',
@@ -221,7 +221,7 @@ export default function POSPage() {
 
       // Clear cart after successful order
       setCart([]);
-      setSelectedClient('');
+      setSelectedClient('guest');
       setDiscountCode('');
       setAppliedDiscount(null);
       setTipAmount(0);
@@ -502,7 +502,7 @@ export default function POSPage() {
                       <SelectValue placeholder="Выберите клиента" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Гость</SelectItem>
+                      <SelectItem value="guest">Гость</SelectItem>
                       {clients.map(client => (
                         <SelectItem key={client.id} value={client.id}>
                           {client.first_name} {client.last_name}
