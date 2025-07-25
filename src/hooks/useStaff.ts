@@ -258,6 +258,49 @@ export const useStaff = () => {
     },
   });
 
+  // Добавление нового сотрудника
+  const addStaff = useMutation({
+    mutationFn: async (staffData: any) => {
+      if (!profile?.salon_id) throw new Error('Salon ID not found');
+
+      // Создаем пользователя в auth.users
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: staffData.email,
+        password: staffData.password || 'temp123456',
+        email_confirm: true,
+        user_metadata: {
+          first_name: staffData.first_name,
+          last_name: staffData.last_name
+        }
+      });
+
+      if (authError) throw authError;
+
+      // Создаем профиль сотрудника
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert({
+          id: authData.user.id,
+          email: staffData.email,
+          first_name: staffData.first_name,
+          last_name: staffData.last_name,
+          phone: staffData.phone,
+          role: staffData.role,
+          salary: staffData.salary,
+          hire_date: staffData.hire_date,
+          salon_id: profile.salon_id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
+  });
+
   const refreshAllData = () => {
     queryClient.invalidateQueries({ queryKey: ['staff'] });
     queryClient.invalidateQueries({ queryKey: ['shifts'] });
@@ -279,6 +322,7 @@ export const useStaff = () => {
     isLoadingMessages: getMessages.isLoading,
     
     // Мутации
+    addStaff,
     addShift,
     addTask,
     updateTask,

@@ -65,7 +65,7 @@ const Dashboard = () => {
         .slice(0, 5);
       setRecentClients(recent);
     }
-  }, [clientsLoading]); // Убираем clients из зависимостей для избежания цикла
+  }, [clients, clientsLoading]);
 
   const stats = [
     {
@@ -167,10 +167,10 @@ const Dashboard = () => {
                       {stat.value}
                     </h3>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1 flex items-center">
+                  <div className="text-xs text-muted-foreground mt-1 flex items-center">
                     <div className="status-dot bg-green-500"></div>
                     {stat.change}
-                  </p>
+                  </div>
                 </div>
               </div>
             </CardContent>

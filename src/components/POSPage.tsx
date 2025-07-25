@@ -323,15 +323,12 @@ export default function POSPage() {
                               <Button 
                                 size="sm" 
                                 className={`${viewMode === 'grid' ? 'mt-1' : ''} bg-gradient-primary text-white`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  addToCart({
-                                    id: service.id,
-                                    name: service.name,
-                                    price: service.price,
-                                    type: 'service'
-                                  });
-                                }}
+                                 onClick={() => addToCart({
+                                   id: service.id,
+                                   name: service.name,
+                                   price: service.price,
+                                   type: 'service'
+                                 })}
                               >
                                 <Plus className="h-3 w-3" />
                               </Button>
@@ -404,16 +401,13 @@ export default function POSPage() {
                                 <Button 
                                   size="sm" 
                                   className="mt-1 bg-gradient-primary text-white"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    addToCart({
-                                      id: product.id,
-                                      name: product.name,
-                                      price: product.unit_price || product.unit_cost,
-                                      type: 'product',
-                                      stock: product.current_stock
-                                    });
-                                  }}
+                                   onClick={() => addToCart({
+                                     id: product.id,
+                                     name: product.name,
+                                     price: product.unit_price || product.unit_cost,
+                                     type: 'product',
+                                     stock: product.current_stock
+                                   })}
                                 >
                                   <Plus className="h-3 w-3" />
                                 </Button>
