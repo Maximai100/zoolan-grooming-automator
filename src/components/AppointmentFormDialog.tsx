@@ -214,7 +214,7 @@ export default function AppointmentFormDialog({
                 <SelectValue placeholder="Выберите грумера" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Любой доступный</SelectItem>
+                <SelectItem value="any">Любой доступный</SelectItem>
                 {staff.filter(s => s.role === 'groomer' || s.role === 'manager').map(groomer => (
                   <SelectItem key={groomer.id} value={groomer.id}>
                     {groomer.first_name} {groomer.last_name}
