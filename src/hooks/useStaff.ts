@@ -114,6 +114,69 @@ export const useStaff = () => {
     staleTime: 30 * 1000, // 30 секунд для чата
   });
 
+  // Получение времени работы
+  const getTimeTracking = useQuery({
+    queryKey: ['time-tracking', profile?.salon_id],
+    queryFn: async () => {
+      if (!profile?.salon_id) return [];
+
+      const { data, error } = await supabase
+        .from('time_tracking')
+        .select(`
+          *,
+          profiles!time_tracking_staff_id_fkey(first_name, last_name, role)
+        `)
+        .eq('salon_id', profile.salon_id)
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!profile?.salon_id,
+    staleTime: 2 * 60 * 1000,
+  });
+
+  // Получение аналитики персонала
+  const getStaffAnalytics = useQuery({
+    queryKey: ['staff-analytics', profile?.salon_id],
+    queryFn: async () => {
+      if (!profile?.salon_id) return { totalHours: 0, totalAppointments: 0, averageRating: 0 };
+
+      // Получаем статистику по времени работы
+      const { data: timeData } = await supabase
+        .from('time_tracking')
+        .select('total_hours, staff_id')
+        .eq('salon_id', profile.salon_id)
+        .not('total_hours', 'is', null);
+
+      // Получаем статистику по записям
+      const { data: appointmentData } = await supabase
+        .from('appointments')
+        .select('groomer_id')
+        .eq('salon_id', profile.salon_id)
+        .eq('status', 'completed');
+
+      const totalHours = timeData?.reduce((sum, record) => sum + (record.total_hours || 0), 0) || 0;
+      const totalAppointments = appointmentData?.length || 0;
+
+      // Получаем количество сотрудников
+      const { data: staffData } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('salon_id', profile.salon_id);
+
+      return {
+        totalHours: Math.round(totalHours * 100) / 100,
+        totalAppointments,
+        averageRating: 4.5, // Заглушка для рейтинга
+        staffCount: staffData?.length || 0
+      };
+    },
+    enabled: !!profile?.salon_id,
+    staleTime: 5 * 60 * 1000,
+  });
+
   // Добавление смены
   const addShift = useMutation({
     mutationFn: async (shiftData: any) => {
@@ -301,11 +364,33 @@ export const useStaff = () => {
     },
   });
 
+  // Получение активной записи времени
+  const getActiveTimeTracking = useMutation({
+    mutationFn: async () => {
+      if (!profile?.salon_id || !user?.id) return null;
+
+      const { data, error } = await supabase
+        .from('time_tracking')
+        .select('*')
+        .eq('salon_id', profile.salon_id)
+        .eq('staff_id', user.id)
+        .is('clock_out', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+  });
+
   const refreshAllData = () => {
     queryClient.invalidateQueries({ queryKey: ['staff'] });
     queryClient.invalidateQueries({ queryKey: ['shifts'] });
     queryClient.invalidateQueries({ queryKey: ['staff-tasks'] });
     queryClient.invalidateQueries({ queryKey: ['staff-messages'] });
+    queryClient.invalidateQueries({ queryKey: ['time-tracking'] });
+    queryClient.invalidateQueries({ queryKey: ['staff-analytics'] });
   };
 
   return {
@@ -314,12 +399,15 @@ export const useStaff = () => {
     shifts: getShifts.data || [],
     tasks: getTasks.data || [],
     messages: getMessages.data || [],
+    timeTracking: getTimeTracking.data || [],
+    staffAnalytics: getStaffAnalytics.data,
     
     // Статусы загрузки
     isLoadingStaff: getStaff.isLoading,
     isLoadingShifts: getShifts.isLoading,
     isLoadingTasks: getTasks.isLoading,
     isLoadingMessages: getMessages.isLoading,
+    isLoadingAnalytics: getStaffAnalytics.isLoading,
     
     // Мутации
     addStaff,
@@ -329,6 +417,7 @@ export const useStaff = () => {
     sendMessage,
     clockIn,
     clockOut,
+    getActiveTimeTracking,
     
     // Утилиты
     refreshAllData,

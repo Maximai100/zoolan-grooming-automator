@@ -19,9 +19,9 @@ import StaffForm from './StaffForm';
 
 const StaffPage = () => {
   const { 
-    staff, shifts, tasks, messages, 
-    isLoadingStaff, isLoadingShifts, isLoadingTasks, isLoadingMessages,
-    addShift, addTask, updateTask, sendMessage, clockIn, clockOut,
+    staff, shifts, tasks, messages, staffAnalytics, timeTracking,
+    isLoadingStaff, isLoadingShifts, isLoadingTasks, isLoadingMessages, isLoadingAnalytics,
+    addShift, addTask, updateTask, sendMessage, clockIn, clockOut, getActiveTimeTracking,
     refreshAllData, profile
   } = useStaff();
   const { toast } = useToast();
@@ -183,7 +183,7 @@ const StaffPage = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="shifts">
             <Calendar className="w-4 h-4 mr-2" />
             Смены
@@ -195,6 +195,10 @@ const StaffPage = () => {
           <TabsTrigger value="messages">
             <MessageCircle className="w-4 h-4 mr-2" />
             Сообщения
+          </TabsTrigger>
+          <TabsTrigger value="analytics">
+            <Timer className="w-4 h-4 mr-2" />
+            Аналитика
           </TabsTrigger>
           <TabsTrigger value="staff">
             <Users className="w-4 h-4 mr-2" />
@@ -298,31 +302,32 @@ const StaffPage = () => {
                         <Badge variant={getStatusColor(shift.status)}>
                           {shift.status}
                         </Badge>
-                        {shift.profiles?.id === profile?.id && (
-                          <div className="flex gap-1">
-                            <Button 
-                              size="sm" 
-                              onClick={() => clockIn.mutate(shift.id)}
-                              disabled={clockIn.isPending}
-                            >
-                              <Play className="w-3 h-3 mr-1" />
-                              Clock In
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => {
-                                // Нужно найти активную запись time_tracking для завершения
-                                // Это упрощённая версия - в реальности нужен ID записи
-                                // clockOut.mutate(trackingId);
-                              }}
-                              disabled={clockOut.isPending}
-                            >
-                              <Square className="w-3 h-3 mr-1" />
-                              Clock Out
-                            </Button>
-                          </div>
-                        )}
+                         {shift.profiles?.id === profile?.id && (
+                           <div className="flex gap-1">
+                             <Button 
+                               size="sm" 
+                               onClick={() => clockIn.mutate(shift.id)}
+                               disabled={clockIn.isPending}
+                             >
+                               <Play className="w-3 h-3 mr-1" />
+                               Начать
+                             </Button>
+                             <Button 
+                               size="sm" 
+                               variant="outline"
+                               onClick={async () => {
+                                 const activeTracking = await getActiveTimeTracking.mutateAsync();
+                                 if (activeTracking) {
+                                   clockOut.mutate(activeTracking.id);
+                                 }
+                               }}
+                               disabled={clockOut.isPending || getActiveTimeTracking.isPending}
+                             >
+                               <Square className="w-3 h-3 mr-1" />
+                               Завершить
+                             </Button>
+                           </div>
+                         )}
                       </div>
                     </div>
                   </CardContent>
@@ -569,6 +574,137 @@ const StaffPage = () => {
               ))
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Аналитика персонала</h2>
+          </div>
+
+          {isLoadingAnalytics ? (
+            <div className="text-center py-8">Загрузка аналитики...</div>
+          ) : (
+            <div className="grid gap-4">
+              {/* Общая статистика */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-8 w-8 text-primary" />
+                      <div>
+                        <p className="text-2xl font-bold">{staffAnalytics?.staffCount || 0}</p>
+                        <p className="text-sm text-muted-foreground">Сотрудников</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-8 w-8 text-blue-500" />
+                      <div>
+                        <p className="text-2xl font-bold">{staffAnalytics?.totalHours || 0}ч</p>
+                        <p className="text-sm text-muted-foreground">Общее время</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2">
+                      <CheckSquare className="h-8 w-8 text-green-500" />
+                      <div>
+                        <p className="text-2xl font-bold">{staffAnalytics?.totalAppointments || 0}</p>
+                        <p className="text-sm text-muted-foreground">Выполненных записей</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-8 w-8 text-yellow-500" />
+                      <div>
+                        <p className="text-2xl font-bold">{staffAnalytics?.averageRating || 0}</p>
+                        <p className="text-sm text-muted-foreground">Средний рейтинг</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Время работы по сотрудникам */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Отработанное время</CardTitle>
+                  <CardDescription>Учёт рабочего времени сотрудников</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {timeTracking.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Нет записей о рабочем времени
+                      </div>
+                    ) : (
+                      timeTracking.slice(0, 10).map((tracking: any) => (
+                        <div key={tracking.id} className="flex justify-between items-center p-3 border rounded-lg">
+                          <div>
+                            <p className="font-medium">
+                              {tracking.profiles?.first_name} {tracking.profiles?.last_name}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {format(new Date(tracking.clock_in), 'dd.MM.yyyy HH:mm')} 
+                              {tracking.clock_out && ` - ${format(new Date(tracking.clock_out), 'HH:mm')}`}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold">
+                              {tracking.total_hours ? `${tracking.total_hours}ч` : 'В работе'}
+                            </p>
+                            <Badge variant={tracking.clock_out ? 'default' : 'secondary'}>
+                              {tracking.clock_out ? 'Завершено' : 'Активно'}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Производительность сотрудников */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Производительность</CardTitle>
+                  <CardDescription>Статистика выполненных заказов по сотрудникам</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {staff.map((member: any) => {
+                      const memberTimeTracking = timeTracking.filter(t => t.staff_id === member.id);
+                      const totalHours = memberTimeTracking.reduce((sum, t) => sum + (t.total_hours || 0), 0);
+                      
+                      return (
+                        <div key={member.id} className="flex justify-between items-center p-3 border rounded-lg">
+                          <div>
+                            <p className="font-medium">{member.first_name} {member.last_name}</p>
+                            <p className="text-sm text-muted-foreground capitalize">{member.role}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm">Время: {Math.round(totalHours * 100) / 100}ч</p>
+                            <p className="text-sm">Смен: {memberTimeTracking.length}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="staff" className="space-y-4">
