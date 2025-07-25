@@ -22,6 +22,20 @@ interface AppointmentFormDialogProps {
   preselectedTime?: string;
 }
 
+// Генерируем временные слоты от 08:00 до 22:00 с интервалом 30 минут
+const generateTimeSlots = () => {
+  const slots = [];
+  for (let hour = 8; hour < 22; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      slots.push(timeString);
+    }
+  }
+  return slots;
+};
+
+const TIME_SLOTS = generateTimeSlots();
+
 export default function AppointmentFormDialog({
   open,
   onClose,
@@ -214,7 +228,7 @@ export default function AppointmentFormDialog({
                 <SelectValue placeholder="Выберите грумера" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Любой доступный</SelectItem>
+                <SelectItem value="">Любой доступный</SelectItem>
                 {staff.filter(s => s.role === 'groomer' || s.role === 'manager').map(groomer => (
                   <SelectItem key={groomer.id} value={groomer.id}>
                     {groomer.first_name} {groomer.last_name}
@@ -237,12 +251,21 @@ export default function AppointmentFormDialog({
 
           <div className="space-y-2">
             <Label htmlFor="time">Время *</Label>
-            <Input
-              id="time"
-              type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-            />
+            <Select value={time} onValueChange={setTime}>
+              <SelectTrigger>
+                <SelectValue placeholder="Выберите время" />
+              </SelectTrigger>
+              <SelectContent className="max-h-48">
+                {TIME_SLOTS.map(timeSlot => (
+                  <SelectItem key={timeSlot} value={timeSlot}>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      {timeSlot}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

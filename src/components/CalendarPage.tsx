@@ -113,7 +113,6 @@ const CalendarPage = () => {
       await addAppointment(appointmentData);
       setShowAppointmentForm(false);
       setSelectedSlot(null);
-      await refetch(); // Обновляем данные после добавления
       toast({
         title: 'Успешно',
         description: 'Запись добавлена',
@@ -132,7 +131,6 @@ const CalendarPage = () => {
       await updateAppointment(selectedAppointment.id, appointmentData);
       setShowAppointmentForm(false);
       setSelectedAppointment(null);
-      await refetch(); // Обновляем данные после изменения
       toast({
         title: 'Успешно',
         description: 'Запись обновлена',
@@ -152,7 +150,6 @@ const CalendarPage = () => {
         await deleteAppointment(selectedAppointment.id);
         setShowAppointmentDetails(false);
         setSelectedAppointment(null);
-        await refetch(); // Обновляем данные после удаления
         toast({
           title: 'Успешно',
           description: 'Запись удалена',
@@ -351,8 +348,8 @@ const CalendarPage = () => {
               views={['month', 'week', 'day']}
               step={30}
               timeslots={2}
-              min={new Date(2024, 0, 1, 9, 0)} // 9:00
-              max={new Date(2024, 0, 1, 18, 0)} // 18:00
+              min={new Date(2024, 0, 1, 8, 0)} // 8:00
+              max={new Date(2024, 0, 1, 22, 0)} // 22:00
               messages={{
                 next: 'Следующий',
                 previous: 'Предыдущий',
@@ -367,25 +364,28 @@ const CalendarPage = () => {
               }}
               eventPropGetter={(event) => {
                 const colors = {
-                  completed: { backgroundColor: '#10b981', border: '#059669' },
-                  cancelled: { backgroundColor: '#ef4444', border: '#dc2626' },
-                  no_show: { backgroundColor: '#6b7280', border: '#4b5563' },
-                  confirmed: { backgroundColor: '#3b82f6', border: '#2563eb' },
-                  in_progress: { backgroundColor: '#f59e0b', border: '#d97706' }
+                  completed: { backgroundColor: 'hsl(var(--chart-2))', border: 'hsl(var(--chart-2))' },
+                  cancelled: { backgroundColor: 'hsl(var(--destructive))', border: 'hsl(var(--destructive))' },
+                  no_show: { backgroundColor: 'hsl(var(--muted-foreground))', border: 'hsl(var(--muted-foreground))' },
+                  confirmed: { backgroundColor: 'hsl(var(--chart-1))', border: 'hsl(var(--chart-1))' },
+                  in_progress: { backgroundColor: 'hsl(var(--chart-3))', border: 'hsl(var(--chart-3))' },
+                  scheduled: { backgroundColor: 'hsl(var(--primary))', border: 'hsl(var(--primary))' }
                 };
                 
-                const color = colors[event.resource.status] || colors.confirmed;
+                const color = colors[event.resource.status] || colors.scheduled;
                 
                 return {
                   style: {
                     ...color,
-                    borderRadius: '6px',
+                    borderRadius: '8px',
                     border: `2px solid ${color.border}`,
                     color: 'white',
-                    fontSize: '12px',
-                    padding: '2px 4px',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    padding: '4px 8px',
                     cursor: 'pointer',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    boxShadow: 'hsl(var(--shadow))',
+                    transition: 'all 0.2s ease'
                   }
                 };
               }}
