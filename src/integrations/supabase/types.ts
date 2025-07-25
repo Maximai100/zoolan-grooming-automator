@@ -281,6 +281,41 @@ export type Database = {
           },
         ]
       }
+      appointment_photos: {
+        Row: {
+          appointment_id: string
+          created_at: string
+          id: string
+          photo_type: string
+          photo_url: string
+          uploaded_at: string
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string
+          id?: string
+          photo_type: string
+          photo_url: string
+          uploaded_at?: string
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string
+          id?: string
+          photo_type?: string
+          photo_url?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_photos_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           client_id: string

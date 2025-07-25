@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import PetForm from './PetForm';
 import AppointmentFormDialog from './AppointmentFormDialog';
+import PhotoUpload from './PhotoUpload';
 
 interface PetDetailPageProps {
   petId: string;
@@ -35,6 +36,8 @@ export default function PetDetailPage({ petId, clientId, onBack }: PetDetailPage
   const { appointments, loading: appointmentsLoading } = useAppointments();
   const [showEditForm, setShowEditForm] = useState(false);
   const [showAppointmentForm, setShowAppointmentForm] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string>('');
+  const [showPhotoUpload, setShowPhotoUpload] = useState(false);
 
   const pet = pets.find(p => p.id === petId);
   
@@ -65,6 +68,11 @@ export default function PetDetailPage({ petId, clientId, onBack }: PetDetailPage
       await updatePet(pet.id, formData);
       setShowEditForm(false);
     }
+  };
+
+  const openPhotoUpload = (appointmentId: string) => {
+    setSelectedAppointmentId(appointmentId);
+    setShowPhotoUpload(true);
   };
 
   const formatAge = (age?: number) => {
@@ -232,48 +240,36 @@ export default function PetDetailPage({ petId, clientId, onBack }: PetDetailPage
                         </div>
                       )}
                       
-                      {/* Фотографии до и после */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {visit.beforePhotos.length > 0 && (
-                          <div>
-                            <div className="text-sm font-medium mb-2 flex items-center gap-1">
-                              <Camera className="h-4 w-4" />
-                              Фото до
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
-                              {visit.beforePhotos.map((photo, photoIndex) => (
-                                <div key={photoIndex} className="aspect-square rounded-lg overflow-hidden bg-muted">
-                                  <img src={photo} alt={`До ${photoIndex + 1}`} className="w-full h-full object-cover" />
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {visit.afterPhotos.length > 0 && (
-                          <div>
-                            <div className="text-sm font-medium mb-2 flex items-center gap-1">
-                              <Camera className="h-4 w-4" />
-                              Фото после
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
-                              {visit.afterPhotos.map((photo, photoIndex) => (
-                                <div key={photoIndex} className="aspect-square rounded-lg overflow-hidden bg-muted">
-                                  <img src={photo} alt={`После ${photoIndex + 1}`} className="w-full h-full object-cover" />
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Заглушка для фотографий */}
-                        {visit.beforePhotos.length === 0 && visit.afterPhotos.length === 0 && (
-                          <div className="col-span-2 text-center py-4 text-muted-foreground">
-                            <Camera className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                            <p className="text-sm">Фотографии не загружены</p>
-                          </div>
-                        )}
+                      {/* Кнопка для добавления фотографий */}
+                      <div className="mb-4">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => openPhotoUpload(visit.id)}
+                          className="gap-2"
+                        >
+                          <Camera className="h-4 w-4" />
+                          Управление фотографиями
+                        </Button>
                       </div>
+                      
+                      {/* Компонент загрузки фотографий */}
+                      {showPhotoUpload && selectedAppointmentId === visit.id && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                          <PhotoUpload
+                            appointmentId={visit.id}
+                            photoType="before"
+                            title="Фото до"
+                            onPhotoUploaded={() => {}}
+                          />
+                          <PhotoUpload
+                            appointmentId={visit.id}
+                            photoType="after"
+                            title="Фото после"
+                            onPhotoUploaded={() => {}}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                   
