@@ -14,6 +14,7 @@ import ClientForm from './ClientForm';
 import PetsModal from './PetsModal';
 import ClientCard from './ClientCard';
 import AppointmentFormDialog from './AppointmentFormDialog';
+import PetDetailPage from './PetDetailPage';
 import { 
   Plus, Search, Filter, Users, Phone, Mail, 
   Calendar, MapPin, Edit, Trash2, Eye, Star,
@@ -40,6 +41,8 @@ const ClientsPage = () => {
   const [showAppointmentForm, setShowAppointmentForm] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedPet, setSelectedPet] = useState(null);
+  const [showPetDetail, setShowPetDetail] = useState(false);
+  const [selectedPetId, setSelectedPetId] = useState(null);
 
   const handleAddClient = async (clientData: any) => {
     try {
@@ -98,6 +101,19 @@ const ClientsPage = () => {
     setSelectedClient(client);
     setSelectedPet(pet);
     setShowAppointmentForm(true);
+  };
+
+  const handleViewPetDetail = (client: any, pet: any) => {
+    setSelectedClientId(client.id);
+    setSelectedPetId(pet.id);
+    setShowPetDetail(true);
+    setShowPetsModal(false);
+  };
+
+  const handleBackFromPetDetail = () => {
+    setShowPetDetail(false);
+    setSelectedPetId(null);
+    setSelectedClientId(null);
   };
 
   // Получаем всех питомцев для подсчета и фильтрации по породам
@@ -183,6 +199,17 @@ const ClientsPage = () => {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         <div className="ml-3 text-lg text-muted-foreground">Загрузка клиентов...</div>
       </div>
+    );
+  }
+
+  // Показываем детальную карточку питомца, если выбран питомец
+  if (showPetDetail && selectedPetId && selectedClientId) {
+    return (
+      <PetDetailPage
+        petId={selectedPetId}
+        clientId={selectedClientId}
+        onBack={handleBackFromPetDetail}
+      />
     );
   }
 
@@ -533,6 +560,7 @@ const ClientsPage = () => {
           setShowAppointmentForm(true);
           setShowPetsModal(false);
         }}
+        onViewPetDetail={handleViewPetDetail}
       />
 
       {/* Диалог записи на прием */}

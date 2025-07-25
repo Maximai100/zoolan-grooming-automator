@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Heart, Edit3, Trash2, Clock, Weight, Ruler } from 'lucide-react';
+import { Plus, Heart, Edit3, Trash2, Clock, Weight, Ruler, Eye } from 'lucide-react';
 import { usePets } from '@/hooks/usePets';
 import PetForm from './PetForm';
 
@@ -13,9 +13,10 @@ interface PetsModalProps {
   open: boolean;
   onClose: () => void;
   onScheduleGrooming?: (client: any, pet: any) => void;
+  onViewPetDetail?: (client: any, pet: any) => void;
 }
 
-export default function PetsModal({ client, open, onClose, onScheduleGrooming }: PetsModalProps) {
+export default function PetsModal({ client, open, onClose, onScheduleGrooming, onViewPetDetail }: PetsModalProps) {
   const { pets, loading, addPet, updatePet, deletePet, calculateServiceTime } = usePets(client?.id);
   const [showPetForm, setShowPetForm] = useState(false);
   const [editingPet, setEditingPet] = useState(null);
@@ -217,13 +218,23 @@ export default function PetsModal({ client, open, onClose, onScheduleGrooming }:
                         </div>
                       </div>
 
-                      <Button 
-                        size="sm" 
-                        className="w-full bg-gradient-primary"
-                        onClick={() => handleScheduleGrooming(pet)}
-                      >
-                        Записать на груминг
-                      </Button>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => onViewPetDetail?.(client, pet)}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          Подробно
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          className="bg-gradient-primary"
+                          onClick={() => handleScheduleGrooming(pet)}
+                        >
+                          Записать
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
