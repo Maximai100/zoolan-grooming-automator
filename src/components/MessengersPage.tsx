@@ -142,23 +142,14 @@ const MessengersPage = () => {
   };
 
   const handleCreateIntegration = async () => {
-    if (!newIntegration.platform) return;
-
-    const result = await createIntegration(newIntegration);
-    if (result) {
-      setNewIntegration({ platform: 'telegram', is_active: false });
-      setShowIntegrationDialog(false);
-    }
+    // Функция не реализована - выводим уведомление
+    alert('Интеграция с мессенджерами будет доступна в следующих обновлениях');
+    setShowIntegrationDialog(false);
   };
 
   const handleCreateTemplate = async () => {
-    if (!newTemplate.name || !newTemplate.content || !newTemplate.integration_id) return;
-
-    const result = await createTemplate(newTemplate);
-    if (result) {
-      setNewTemplate({ template_type: 'appointment_reminder', is_active: true, approval_status: 'approved' });
-      setShowTemplateDialog(false);
-    }
+    alert('Создание шаблонов будет доступно после настройки интеграций');
+    setShowTemplateDialog(false);
   };
 
   const handleUpdateTemplate = async () => {

@@ -51,27 +51,15 @@ const SecurityPage = () => {
   const [showBackupCodes, setShowBackupCodes] = useState(false);
 
   const handleGenerate2FA = async () => {
-    const setup = await generateTwoFactorSecret();
-    if (setup) {
-      setQrSetup(setup);
-    }
+    alert('Двухфакторная аутентификация будет доступна в следующих обновлениях');
   };
 
   const handleEnable2FA = async () => {
-    if (verificationCode.length === 6) {
-      const success = await enableTwoFactor(verificationCode);
-      if (success) {
-        setQrSetup(null);
-        setVerificationCode('');
-      }
-    }
+    alert('Функция будет доступна после настройки безопасности');
   };
 
   const handleRegenerateBackupCodes = async () => {
-    const codes = await regenerateBackupCodes();
-    if (codes) {
-      setShowBackupCodes(true);
-    }
+    alert('Резервные коды будут доступны после включения 2FA');
   };
 
   const getActionIcon = (action: string) => {

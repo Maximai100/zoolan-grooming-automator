@@ -11,7 +11,7 @@ import { useServices } from '@/hooks/useServices';
 import { useClients } from '@/hooks/useClients';
 import { useInventory } from '@/hooks/useInventory';
 import { usePOS } from '@/hooks/usePOS';
-import { useDiscountCodes } from '@/hooks/useDiscountCodes';
+
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -38,7 +38,10 @@ export default function POSPage() {
   const { clients } = useClients();
   const { items: products } = useInventory();
   const { createOrder, loading } = usePOS();
-  const { validateDiscountCode, calculateDiscount, markDiscountCodeUsed } = useDiscountCodes();
+  // Временно отключаем промокоды до реализации
+  const validateDiscountCode = () => Promise.resolve(null);
+  const calculateDiscount = () => 0;
+  const markDiscountCodeUsed = () => Promise.resolve();
   const { toast } = useToast();
 
   const addToCart = (item: { id: string; name: string; price: number; type: 'service' | 'product'; stock?: number }) => {
@@ -137,53 +140,11 @@ export default function POSPage() {
   const total = subtotal - totalDiscountAmount + tipAmount;
 
   const handleApplyDiscount = async () => {
-    try {
-      if (!discountCode.trim()) {
-        toast({
-          title: 'Ошибка',
-          description: 'Введите промокод',
-          variant: 'destructive'
-        });
-        return;
-      }
-
-      const validation = await validateDiscountCode(discountCode);
-      if (!validation.valid) {
-        toast({
-          title: 'Ошибка',
-          description: validation.error,
-          variant: 'destructive'
-        });
-        return;
-      }
-
-      const discount = calculateDiscount(validation.discountCode!, subtotal, cart);
-      if (discount.error) {
-        toast({
-          title: 'Ошибка',
-          description: discount.error,
-          variant: 'destructive'
-        });
-        return;
-      }
-
-      setAppliedDiscount({
-        code: validation.discountCode,
-        discountAmount: discount.discountAmount
-      });
-
-      toast({
-        title: 'Промокод применен',
-        description: `Скидка: ${discount.discountAmount}₽`
-      });
-    } catch (error) {
-      console.error('Error applying discount:', error);
-      toast({
-        title: 'Ошибка',
-        description: 'Не удалось применить промокод',
-        variant: 'destructive'
-      });
-    }
+    toast({
+      title: 'Функция не реализована',
+      description: 'Промокоды будут доступны в следующих обновлениях',
+      variant: 'destructive'
+    });
   };
 
   const handleRemoveDiscount = () => {
@@ -214,10 +175,7 @@ export default function POSPage() {
         total
       });
 
-      // Mark discount code as used
-      if (appliedDiscount?.code) {
-        await markDiscountCodeUsed(appliedDiscount.code.id);
-      }
+      // Промокоды временно отключены
 
       // Clear cart after successful order
       setCart([]);
@@ -542,11 +500,11 @@ export default function POSPage() {
                       </Button>
                     )}
                   </div>
-                  {appliedDiscount && (
-                    <p className="text-sm text-green-600">
-                      Применен промокод: {appliedDiscount.code.code} (-{appliedDiscount.discountAmount}₽)
-                    </p>
-                  )}
+                   {appliedDiscount && (
+                     <p className="text-sm text-green-600">
+                       Промокод применен
+                     </p>
+                   )}
                 </div>
 
                 <div className="space-y-2">

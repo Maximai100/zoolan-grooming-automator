@@ -49,25 +49,21 @@ const Dashboard = () => {
 
   // Фильтрация сегодняшних записей
   useEffect(() => {
-    if (!appointmentsLoading && appointments && appointments.length > 0) {
+    if (!appointmentsLoading && appointments) {
       const today = appointments.filter(apt => 
         isToday(new Date(apt.scheduled_date))
       ).sort((a, b) => a.scheduled_time.localeCompare(b.scheduled_time));
       setTodayAppointments(today);
-    } else if (!appointmentsLoading) {
-      setTodayAppointments([]);
     }
   }, [appointments, appointmentsLoading]);
 
   // Недавние клиенты
   useEffect(() => {
-    if (!clientsLoading && clients && clients.length > 0) {
+    if (!clientsLoading && clients) {
       const recent = [...clients]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 5);
       setRecentClients(recent);
-    } else if (!clientsLoading) {
-      setRecentClients([]);
     }
   }, [clients, clientsLoading]);
 
