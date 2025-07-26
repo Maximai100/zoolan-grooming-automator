@@ -12,6 +12,8 @@ import { ru } from 'date-fns/locale';
 import PetForm from './PetForm';
 import AppointmentFormDialog from './AppointmentFormDialog';
 import PhotoUpload from './PhotoUpload';
+import PhotoViewer from './PhotoViewer';
+import { useAppointmentPhotos } from '@/hooks/useAppointmentPhotos';
 
 interface PetDetailPageProps {
   petId: string;
@@ -38,6 +40,9 @@ export default function PetDetailPage({ petId, clientId, onBack }: PetDetailPage
   const [showAppointmentForm, setShowAppointmentForm] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string>('');
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
+  const [photoViewerOpen, setPhotoViewerOpen] = useState(false);
+  const [selectedPhotos, setSelectedPhotos] = useState<any[]>([]);
+  const [photoViewerIndex, setPhotoViewerIndex] = useState(0);
 
   const pet = pets.find(p => p.id === petId);
   
@@ -73,6 +78,12 @@ export default function PetDetailPage({ petId, clientId, onBack }: PetDetailPage
   const openPhotoUpload = (appointmentId: string) => {
     setSelectedAppointmentId(appointmentId);
     setShowPhotoUpload(true);
+  };
+
+  const openPhotoViewer = (photos: any[], index: number = 0) => {
+    setSelectedPhotos(photos);
+    setPhotoViewerIndex(index);
+    setPhotoViewerOpen(true);
   };
 
   const formatAge = (age?: number) => {
@@ -240,36 +251,13 @@ export default function PetDetailPage({ petId, clientId, onBack }: PetDetailPage
                         </div>
                       )}
                       
-                      {/* Кнопка для добавления фотографий */}
-                      <div className="mb-4">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => openPhotoUpload(visit.id)}
-                          className="gap-2"
-                        >
-                          <Camera className="h-4 w-4" />
-                          Управление фотографиями
-                        </Button>
-                      </div>
-                      
-                      {/* Компонент загрузки фотографий */}
-                      {showPhotoUpload && selectedAppointmentId === visit.id && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                          <PhotoUpload
-                            appointmentId={visit.id}
-                            photoType="before"
-                            title="Фото до"
-                            onPhotoUploaded={() => {}}
-                          />
-                          <PhotoUpload
-                            appointmentId={visit.id}
-                            photoType="after"
-                            title="Фото после"
-                            onPhotoUploaded={() => {}}
-                          />
-                        </div>
-                      )}
+                      {/* Отображение фотографий */}
+                      <VisitPhotos 
+                        appointmentId={visit.id}
+                        onPhotoClick={openPhotoViewer}
+                        onManagePhotos={() => openPhotoUpload(visit.id)}
+                        showUploadForm={showPhotoUpload && selectedAppointmentId === visit.id}
+                      />
                     </div>
                   </div>
                   
@@ -295,6 +283,112 @@ export default function PetDetailPage({ petId, clientId, onBack }: PetDetailPage
         preselectedClient={{ id: clientId, first_name: client?.first_name, last_name: client?.last_name }}
         preselectedPet={pet}
       />
+
+      <PhotoViewer
+        photos={selectedPhotos}
+        isOpen={photoViewerOpen}
+        onClose={() => setPhotoViewerOpen(false)}
+        initialIndex={photoViewerIndex}
+      />
+    </div>
+  );
+}
+
+// Компонент для отображения фотографий визита
+function VisitPhotos({ 
+  appointmentId, 
+  onPhotoClick, 
+  onManagePhotos, 
+  showUploadForm 
+}: {
+  appointmentId: string;
+  onPhotoClick: (photos: any[], index: number) => void;
+  onManagePhotos: () => void;
+  showUploadForm: boolean;
+}) {
+  const { getPhotosByType } = useAppointmentPhotos(appointmentId);
+  
+  const beforePhotos = getPhotosByType('before');
+  const afterPhotos = getPhotosByType('after');
+  const allPhotos = [...beforePhotos, ...afterPhotos];
+
+  const handlePhotoClick = (photo: any, type: 'before' | 'after') => {
+    const photos = type === 'before' ? beforePhotos : afterPhotos;
+    const index = photos.findIndex(p => p.id === photo.id);
+    onPhotoClick(photos, index);
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Фотографии до и после */}
+      {(beforePhotos.length > 0 || afterPhotos.length > 0) && (
+        <div className="space-y-3">
+          {beforePhotos.length > 0 && (
+            <div>
+              <div className="text-sm font-medium mb-2 text-muted-foreground">Фото до</div>
+              <div className="flex gap-2 flex-wrap">
+                {beforePhotos.map((photo) => (
+                  <img
+                    key={photo.id}
+                    src={photo.photo_url}
+                    alt="Фото до"
+                    className="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => handlePhotoClick(photo, 'before')}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {afterPhotos.length > 0 && (
+            <div>
+              <div className="text-sm font-medium mb-2 text-muted-foreground">Фото после</div>
+              <div className="flex gap-2 flex-wrap">
+                {afterPhotos.map((photo) => (
+                  <img
+                    key={photo.id}
+                    src={photo.photo_url}
+                    alt="Фото после"
+                    className="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => handlePhotoClick(photo, 'after')}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Кнопка управления фотографиями */}
+      <div className="flex gap-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={onManagePhotos}
+          className="gap-2"
+        >
+          <Camera className="h-4 w-4" />
+          {allPhotos.length > 0 ? 'Управление фотографиями' : 'Добавить фотографии'}
+        </Button>
+      </div>
+
+      {/* Форма загрузки фотографий */}
+      {showUploadForm && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+          <PhotoUpload
+            appointmentId={appointmentId}
+            photoType="before"
+            title="Фото до"
+            onPhotoUploaded={() => {}}
+          />
+          <PhotoUpload
+            appointmentId={appointmentId}
+            photoType="after"
+            title="Фото после"
+            onPhotoUploaded={() => {}}
+          />
+        </div>
+      )}
     </div>
   );
 }

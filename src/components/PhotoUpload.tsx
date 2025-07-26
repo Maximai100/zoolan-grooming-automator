@@ -86,10 +86,10 @@ export default function PhotoUpload({ appointmentId, photoType, title, onPhotoUp
         </div>
       )}
 
-      {/* Зона загрузки */}
+      {/* Компактная кнопка загрузки */}
       <div
-        className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer ${
-          dragOver ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'
+        className={`w-12 h-12 border-2 border-dashed rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
+          dragOver ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-muted-foreground/50'
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -97,20 +97,9 @@ export default function PhotoUpload({ appointmentId, photoType, title, onPhotoUp
         onClick={() => fileInputRef.current?.click()}
       >
         {uploading ? (
-          <div className="flex items-center justify-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="text-sm">Загрузка...</span>
-          </div>
+          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
         ) : (
-          <div className="space-y-2">
-            <Upload className="h-6 w-6 mx-auto text-muted-foreground" />
-            <div className="text-sm text-muted-foreground">
-              Перетащите фото сюда или нажмите для выбора
-            </div>
-            <Button variant="outline" size="sm" type="button">
-              Выбрать фото
-            </Button>
-          </div>
+          <Upload className="h-4 w-4 text-muted-foreground" />
         )}
       </div>
 
