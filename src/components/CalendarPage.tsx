@@ -488,16 +488,18 @@ const CalendarPage = () => {
 
       {/* Диалог онлайн-записи */}
       <Dialog open={showOnlineBooking} onOpenChange={setShowOnlineBooking}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Виджет онлайн-записи</DialogTitle>
             <DialogDescription>
               Предварительный просмотр виджета для клиентов
             </DialogDescription>
           </DialogHeader>
-          {userSalonId && (
-            <OnlineBookingWidget salonId={userSalonId} embedded />
-          )}
+          <div className="overflow-y-auto max-h-[75vh]">
+            {userSalonId && (
+              <OnlineBookingWidget salonId={userSalonId} embedded />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 

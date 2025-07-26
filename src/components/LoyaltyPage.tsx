@@ -672,20 +672,22 @@ const LoyaltyPage = () => {
 
       {/* Диалоги */}
       <Dialog open={showProgramForm} onOpenChange={setShowProgramForm}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>
               {editingProgram ? 'Редактировать программу' : 'Новая программа лояльности'}
             </DialogTitle>
           </DialogHeader>
-          <LoyaltyProgramForm
-            program={editingProgram}
-            onSubmit={editingProgram ? handleUpdateProgram : handleCreateProgram}
-            onCancel={() => {
-              setShowProgramForm(false);
-              setEditingProgram(null);
-            }}
-          />
+          <div className="overflow-y-auto max-h-[75vh] pr-2">
+            <LoyaltyProgramForm
+              program={editingProgram}
+              onSubmit={editingProgram ? handleUpdateProgram : handleCreateProgram}
+              onCancel={() => {
+                setShowProgramForm(false);
+                setEditingProgram(null);
+              }}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 
